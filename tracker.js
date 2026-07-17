@@ -8,7 +8,7 @@
     'use strict';
 
     // Configuration
-    const API_URL = '/api/track';  // Relative URL - works with Cloudflare Worker on same domain
+    const API_URL = 'https://talegent-sodium-ups.tanyong2396.workers.dev/api/track';
     const SITE_NAME = 'Talegent Sodium UPS';
     const SITE_VERSION = '1.0';
 
