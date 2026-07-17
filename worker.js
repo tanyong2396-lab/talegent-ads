@@ -73,7 +73,7 @@ export default {
       }
     }
 
-    // GET /api/stats - statistics
+    // GET /api/stats - summary statistics
     if (request.method === "GET" && path === "/api/stats") {
       const token = url.searchParams.get("token");
       if (token !== "talegent_admin_2026") {
@@ -87,6 +87,48 @@ export default {
         const todayUV = JSON.parse(await env.VISITOR_DATA.get("stats_uv:" + dateStr) || "[]").length;
 
         return new Response(JSON.stringify({ total_page_views: totalPV, today_page_views: todayPV, today_unique_visitors: todayUV }), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }
+    }
+
+    // GET /api/events - detailed event records
+    if (request.method === "GET" && path === "/api/events") {
+      const token = url.searchParams.get("token");
+      if (token !== "talegent_admin_2026") {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+      }
+
+      try {
+        const limit = parseInt(url.searchParams.get("limit") || "50");
+        const type = url.searchParams.get("type") || "";
+
+        // List all keys in KV (Cloudflare Workers KV supports list)
+        const kvList = await env.VISITOR_DATA.list({ prefix: "evt_", limit: 1000 });
+
+        // Fetch all events in parallel
+        const eventPromises = kvList.keys.map(k => env.VISITOR_DATA.get(k.name));
+        const eventStrings = await Promise.all(eventPromises);
+
+        // Parse and filter
+        let events = eventStrings
+          .filter(s => s !== null)
+          .map(s => JSON.parse(s));
+
+        // Filter by event type if specified
+        if (type) {
+          events = events.filter(e => e.event_type === type);
+        }
+
+        // Sort by timestamp descending (newest first)
+        events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        // Apply limit
+        events = events.slice(0, limit);
+
+        return new Response(JSON.stringify({ total: events.length, events: events }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         });
       } catch (err) {
