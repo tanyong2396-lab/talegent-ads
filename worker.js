@@ -105,11 +105,13 @@ export default {
         const limit = parseInt(url.searchParams.get("limit") || "50");
         const type = url.searchParams.get("type") || "";
 
-        // List all keys in KV (Cloudflare Workers KV supports list)
-        const kvList = await env.VISITOR_DATA.list({ prefix: "evt_", limit: 1000 });
+        // List ALL keys in KV (no prefix filter to catch all stored data)
+        const kvList = await env.VISITOR_DATA.list({ limit: 1000 });
 
-        // Fetch all events in parallel
-        const eventPromises = kvList.keys.map(k => env.VISITOR_DATA.get(k.name));
+        // Fetch all event-like keys (skip stats_* keys)
+        const eventPromises = kvList.keys
+          .filter(k => k.name.startsWith("evt_") || k.name.startsWith("event_") || k.name.startsWith("track_"))
+          .map(k => env.VISITOR_DATA.get(k.name));
         const eventStrings = await Promise.all(eventPromises);
 
         // Parse and filter
@@ -117,9 +119,9 @@ export default {
           .filter(s => s !== null)
           .map(s => JSON.parse(s));
 
-        // Filter by event type if specified
+        // Filter by event type if specified (support both camelCase and snake_case)
         if (type) {
-          events = events.filter(e => e.event_type === type);
+          events = events.filter(e => e.event_type === type || e.eventType === type);
         }
 
         // Sort by timestamp descending (newest first)
