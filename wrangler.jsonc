@@ -5,9 +5,9 @@
   "observability": {
     "enabled": true
   },
-  "assets": {
-    "directory": "."
-  },
+  // "assets": {           ← 删除这两行（或整段注释掉）
+  //   "directory": "."
+  // },
   "compatibility_flags": [
     "nodejs_compat"
   ],
