@@ -1,14 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "talegent-tracker-api",
-  "main": "tracker.js",   
+  "main": "worker.js",
   "compatibility_date": "2026-07-17",
   "observability": {
     "enabled": true
   },
-  // "assets": {           ← 删除这两行（或整段注释掉）
-  //   "directory": "."
-  // },
   "compatibility_flags": [
     "nodejs_compat"
   ],
