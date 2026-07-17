@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "talegent-tracker-api",
+  "compatibility_date": "2026-07-17",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "."
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "VISITOR_DATA",
+      "id": "b2ad308dc6bc44b6b13caa92eadbdf29"
+    }
+  ]
+}
