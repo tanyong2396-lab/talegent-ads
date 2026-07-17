@@ -1,81 +1,84 @@
 // ============================================================
-// Talegent Visitor Click Tracker
-// Records user clicks with device info, IP, location, etc.
-// Sends data to Cloudflare Worker API
+// Talegent Visitor Analytics Tracker
+// Compliant with GDPR & China Personal Information Protection Law
+// Only collects anonymized, non-sensitive data
 // ============================================================
 
 (function() {
     'use strict';
 
     // Configuration
-    const API_URL = 'https://talegent-tracker-api.tanyong2396.workers.dev/api/track';  // Worker API URL
+    const API_URL = 'https://talegent-tracker-api.tanyong2396.workers.dev/api/track';
     const SITE_NAME = 'Talegent Sodium UPS';
     const SITE_VERSION = '1.0';
+    const COOKIE_NAME = 'talegent_visitor';
+    const COOKIE_EXPIRY_DAYS = 365;
 
-    // Track when the page was first loaded
+    // Session tracking
     const pageLoadTime = Date.now();
-    const sessionId = generateId();
+    const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
-    function generateId() {
-        return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    // ============================================================
+    // Cookie management for anonymous visitor ID
+    // ============================================================
+    function getVisitorId() {
+        const cookies = document.cookie.split('; ');
+        for (let c of cookies) {
+            const [name, value] = c.split('=');
+            if (name === COOKIE_NAME) return value;
+        }
+        // Generate new anonymous ID
+        const newId = 'vis_' + Date.now() + '_' + Math.random().toString(36).substr(2, 12);
+        const expires = new Date(Date.now() + COOKIE_EXPIRY_DAYS * 86400000).toUTCString();
+        document.cookie = `${COOKIE_NAME}=${newId}; expires=${expires}; path=/; SameSite=Lax`;
+        return newId;
     }
 
     // ============================================================
-    // Collect User Information
+    // Collect anonymized user information
     // ============================================================
     function collectUserInfo() {
-        const info = {
-            sessionId: sessionId,
-            url: window.location.href,
-            referrer: document.referrer || '(direct)',
-            language: navigator.language || navigator.userLanguage || 'unknown',
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
-            screenSize: `${window.screen.width}x${window.screen.height}`,
-            viewportSize: `${window.innerWidth}x${window.innerHeight}`,
-            colorDepth: window.screen.colorDepth || 'unknown',
-            pixelRatio: window.devicePixelRatio || 1,
-            cookiesEnabled: navigator.cookieEnabled,
-            doNotTrack: navigator.doNotTrack || 'unspecified',
-            siteName: SITE_NAME,
-            siteVersion: SITE_VERSION,
-        };
-
-        // Device type detection
         const ua = navigator.userAgent;
-        if (/Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
-            info.deviceType = 'Mobile';
+        
+        // Device type detection from UA (no storage of raw UA)
+        let deviceType = 'Desktop';
+        if (/Mobile|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+            deviceType = 'Mobile';
         } else if (/Tablet|iPad|PlayBook|Silk/i.test(ua)) {
-            info.deviceType = 'Tablet';
-        } else {
-            info.deviceType = 'Desktop';
+            deviceType = 'Tablet';
         }
 
-        // Operating system
-        if (ua.indexOf('Windows') !== -1) info.os = 'Windows';
-        else if (ua.indexOf('Mac OS') !== -1) info.os = 'macOS';
-        else if (ua.indexOf('Linux') !== -1) info.os = 'Linux';
-        else if (ua.indexOf('Android') !== -1) info.os = 'Android';
-        else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) info.os = 'iOS';
-        else info.os = 'Unknown';
+        // OS detection (category only, no version)
+        let os = 'Unknown';
+        if (ua.indexOf('Windows') !== -1) os = 'Windows';
+        else if (ua.indexOf('Mac OS') !== -1) os = 'macOS';
+        else if (ua.indexOf('Linux') !== -1) os = 'Linux';
+        else if (ua.indexOf('Android') !== -1) os = 'Android';
+        else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) os = 'iOS';
 
-        // Browser detection
-        if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1) info.browser = 'Chrome';
-        else if (ua.indexOf('Firefox') !== -1) info.browser = 'Firefox';
-        else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) info.browser = 'Safari';
-        else if (ua.indexOf('Edg') !== -1) info.browser = 'Edge';
-        else if (ua.indexOf('MSIE') !== -1 || ua.indexOf('Trident') !== -1) info.browser = 'Internet Explorer';
-        else info.browser = 'Unknown';
+        // Browser detection (category only)
+        let browser = 'Unknown';
+        if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1) browser = 'Chrome';
+        else if (ua.indexOf('Firefox') !== -1) browser = 'Firefox';
+        else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) browser = 'Safari';
+        else if (ua.indexOf('Edg') !== -1) browser = 'Edge';
+        else if (ua.indexOf('MSIE') !== -1 || ua.indexOf('Trident') !== -1) browser = 'Internet Explorer';
 
-        // Connection type (if available)
-        if (navigator.connection) {
-            info.connectionType = navigator.connection.effectiveType || 'unknown';
-            info.connectionSpeed = navigator.connection.downlink || 'unknown';
-        }
-
-        // Get IP and location via Cloudflare headers (will be added server-side)
-        // We send the request, and the Worker adds CF-IPCountry etc.
-
-        return info;
+        return {
+            visitor_id: getVisitorId(),           // Anonymous cookie-based ID
+            session_id: sessionId,                 // Session identifier
+            url: window.location.href,             // Page URL
+            referrer: document.referrer || '(direct)',  // Traffic source
+            language: navigator.language || 'unknown',  // Browser language
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',  // Timezone
+            screen_width: window.screen.width,     // Screen width (for analytics)
+            screen_height: window.screen.height,   // Screen height
+            device_type: deviceType,               // Desktop/Mobile/Tablet
+            os: os,                                // Operating system category
+            browser: browser,                      // Browser category
+            site_name: SITE_NAME,
+            site_version: SITE_VERSION,
+        };
     }
 
     // ============================================================
@@ -85,57 +88,47 @@
         const payload = {
             ...collectUserInfo(),
             ...eventData,
-            timeOnPage: Date.now() - pageLoadTime,
+            time_on_page: Date.now() - pageLoadTime,  // Duration in ms
         };
 
-        // Use sendBeacon for reliability (works even when page is closing)
+        // Use sendBeacon for reliability
         if (navigator.sendBeacon) {
             const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
             navigator.sendBeacon(API_URL, blob);
         } else {
-            // Fallback to fetch
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
                 keepalive: true,
-            }).catch(err => {
-                // Silently fail - tracking should not affect user experience
-                console.debug('Track error:', err);
-            });
+            }).catch(() => {});
         }
     }
 
     // ============================================================
-    // Track page view on load
+    // Track page view
     // ============================================================
     function trackPageView() {
         sendTrackData({
-            eventType: 'pageview',
-            elementId: 'page',
-            elementText: document.title,
+            event_type: 'pageview',
+            page_title: document.title,
         });
     }
 
     // ============================================================
-    // Track all button clicks and important interactions
+    // Track clicks (anonymized)
     // ============================================================
     function setupClickTracking() {
-        // Track all anchor tags (links)
         document.addEventListener('click', function(e) {
             const target = e.target.closest('a, button, .btn, [onclick]');
             if (!target) return;
 
-            const tagName = target.tagName.toLowerCase();
-            const elementId = target.id || '';
-            const elementClass = target.className || '';
             const href = target.href || '';
             const text = (target.textContent || '').trim().substring(0, 100);
 
-            let eventType = 'click';
             let category = 'general';
+            let eventType = 'click';
 
-            // Categorize clicks
             if (href.includes('wa.me') || href.includes('whatsapp')) {
                 category = 'whatsapp';
                 eventType = 'whatsapp_click';
@@ -145,43 +138,38 @@
             } else if (href.startsWith('#')) {
                 category = 'navigation';
                 eventType = 'nav_click';
-            } else if (tagName === 'button' || elementClass.includes('btn')) {
+            } else if (target.tagName === 'button' || (target.className || '').includes('btn')) {
                 category = 'button';
             }
 
-            // Track the click
             sendTrackData({
-                eventType: eventType,
+                event_type: eventType,
                 category: category,
-                elementId: elementId,
-                elementClass: elementClass,
-                elementText: text,
-                href: href,
-                tagName: tagName,
+                element_text: text.substring(0, 50),  // Truncate long text
+                href: href.substring(0, 200),          // Truncate long URLs
             });
-        }, true); // Use capture phase to catch all clicks
+        }, true);
     }
 
     // ============================================================
-    // Track scroll depth
+    // Track scroll depth (anonymized)
     // ============================================================
     let maxScroll = 0;
     function setupScrollTracking() {
-        let scrollTimer = null;
+        let timer = null;
         window.addEventListener('scroll', function() {
-            if (scrollTimer) clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(function() {
-                const scrollPercent = Math.round(
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function() {
+                const percent = Math.round(
                     (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100
                 );
-                if (scrollPercent > maxScroll) {
-                    maxScroll = scrollPercent;
-                    // Track at 25%, 50%, 75%, 100%
-                    if ([25, 50, 75, 100].includes(scrollPercent)) {
+                if (percent > maxScroll) {
+                    maxScroll = percent;
+                    if ([25, 50, 75, 100].includes(percent)) {
                         sendTrackData({
-                            eventType: 'scroll',
+                            event_type: 'scroll',
                             category: 'engagement',
-                            scrollDepth: scrollPercent + '%',
+                            scroll_depth: percent + '%',
                         });
                     }
                 }
@@ -190,25 +178,14 @@
     }
 
     // ============================================================
-    // Track time on page (after 30 seconds)
+    // Track time on page
     // ============================================================
     function setupTimeTracking() {
         setTimeout(function() {
-            sendTrackData({
-                eventType: 'time_on_page',
-                category: 'engagement',
-                timeOnPage: 30000,
-                label: '30s',
-            });
+            sendTrackData({ event_type: 'time_on_page', category: 'engagement', label: '30s' });
         }, 30000);
-
         setTimeout(function() {
-            sendTrackData({
-                eventType: 'time_on_page',
-                category: 'engagement',
-                timeOnPage: 60000,
-                label: '60s',
-            });
+            sendTrackData({ event_type: 'time_on_page', category: 'engagement', label: '60s' });
         }, 60000);
     }
 
@@ -218,28 +195,11 @@
     function setupLeaveTracking() {
         window.addEventListener('beforeunload', function() {
             sendTrackData({
-                eventType: 'pageleave',
+                event_type: 'pageleave',
                 category: 'engagement',
-                timeOnPage: Date.now() - pageLoadTime,
-                maxScrollDepth: maxScroll + '%',
+                duration: Date.now() - pageLoadTime,
+                max_scroll: maxScroll + '%',
             });
-        });
-
-        // Also track visibility change (user switching tabs)
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') {
-                sendTrackData({
-                    eventType: 'tab_hidden',
-                    category: 'engagement',
-                    timeOnPage: Date.now() - pageLoadTime,
-                });
-            } else {
-                sendTrackData({
-                    eventType: 'tab_visible',
-                    category: 'engagement',
-                    timeOnPage: Date.now() - pageLoadTime,
-                });
-            }
         });
     }
 
@@ -247,21 +207,17 @@
     // Initialize
     // ============================================================
     function init() {
-        // Track page view when DOM is ready
         if (document.readyState === 'complete') {
             trackPageView();
         } else {
             window.addEventListener('load', trackPageView);
         }
-
         setupClickTracking();
         setupScrollTracking();
         setupTimeTracking();
         setupLeaveTracking();
-
-        console.log('Talegent Visitor Tracker initialized ✓');
+        console.log('Talegent Analytics initialized ✓');
     }
 
-    // Start tracking
     init();
 })();
