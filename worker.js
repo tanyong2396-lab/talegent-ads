@@ -429,6 +429,21 @@ export default {
           const key = "evt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
           await env.VISITOR_DATA.put(key, JSON.stringify(data));
 
+          // 维护最新事件列表缓存（最多50条）
+          const MAX_CACHED_EVENTS = 50;
+          let latestEvents = [];
+          try {
+            const cached = await env.VISITOR_DATA.get("latest_events");
+            if (cached) latestEvents = JSON.parse(cached);
+          } catch(e) {}
+          // 新事件插入到最前面
+          latestEvents.unshift(data);
+          // 只保留最新的 MAX_CACHED_EVENTS 条
+          if (latestEvents.length > MAX_CACHED_EVENTS) {
+            latestEvents = latestEvents.slice(0, MAX_CACHED_EVENTS);
+          }
+          await env.VISITOR_DATA.put("latest_events", JSON.stringify(latestEvents));
+
           const dateStr = new Date().toISOString().split("T")[0];
           const currentPV = parseInt(await env.VISITOR_DATA.get("stats_pv") || "0");
           await env.VISITOR_DATA.put("stats_pv", (currentPV + 1).toString());
@@ -445,6 +460,8 @@ export default {
             }
           }
         }
+
+        return new Response(JSON.stringify({ success: true, id: data.id }), {        }
 
         return new Response(JSON.stringify({ success: true, id: data.id }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -489,66 +506,28 @@ export default {
         const limit = parseInt(url.searchParams.get("limit") || "50");
         const type = url.searchParams.get("type") || "";
 
-        // 超时控制：5秒内必须返回
-        const TIMEOUT_MS = 5000;
-        const startTime = Date.now();
-
-        // 分页循环取所有 evt_ 开头的 key
-        let allKeys = [];
-        let cursor = undefined;
-        while (true) {
-          const elapsed = Date.now() - startTime;
-          if (elapsed > TIMEOUT_MS) {
-            return new Response(JSON.stringify({ error: "Timeout", partial: true, total: allKeys.length, events: [] }), {
-              status: 408, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
-            });
-          }
-          const result = await env.VISITOR_DATA.list({ prefix: "evt_", limit: 1000, cursor: cursor });
-          allKeys = allKeys.concat(result.keys);
-          if (!result.list_complete) {
-            cursor = result.cursor;
-          } else {
-            break;
-          }
-        }
-
-        // 取所有 evt_ key 的值
-        const eventStrings = [];
-        for (let i = 0; i < allKeys.length; i++) {
-          const elapsed = Date.now() - startTime;
-          if (elapsed > TIMEOUT_MS) {
-            // 超时，返回已获取的部分数据
-            let partialEvents = eventStrings.filter(s => s !== null).map(s => JSON.parse(s));
-            if (type) partialEvents = partialEvents.filter(e => e.event_type === type || e.eventType === type);
-            partialEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            partialEvents = partialEvents.slice(0, limit);
-            return new Response(JSON.stringify({ total: partialEvents.length, events: partialEvents, partial: true }), {
-              headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
-            });
-          }
-          const val = await env.VISITOR_DATA.get(allKeys[i].name);
-          eventStrings.push(val);
-        }
-
-        // 解析
-        let events = eventStrings.filter(s => s !== null).map(s => JSON.parse(s));
+        // 直接从 latest_events 缓存读取（O(1) 复杂度，毫秒级响应）
+        let events = [];
+        try {
+          const cached = await env.VISITOR_DATA.get("latest_events");
+          if (cached) events = JSON.parse(cached);
+        } catch(e) {}
 
         // 按事件类型过滤
         if (type) {
           events = events.filter(e => e.event_type === type || e.eventType === type);
         }
 
-        // 按时间戳降序排序，只取最新的 limit 条
+        // 按时间戳降序排序（缓存本身已排序，但做一次保障）
         events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        // 只取最新的 limit 条
         events = events.slice(0, limit);
 
         return new Response(JSON.stringify({ total: events.length, events: events }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
-      }
-    }} catch (err) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
       }
     }
