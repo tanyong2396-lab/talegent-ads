@@ -144,7 +144,7 @@ body{font-family:'Segoe UI',-apple-system,sans-serif;background:#f0f2f5;color:#1
 </div>
 <script>
 const TOKEN='talegent_admin_2026';
-const API_BASE=window.location.origin;
+const API_BASE="https://talegent-tracker-api.tanyong2396.workers.dev";
 let allEvents=[];
 let charts={};
 
