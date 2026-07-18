@@ -548,7 +548,7 @@ function toggleDetail(i){var r=document.getElementById('detail-'+i);r.style.disp
 
 function exportCSV(){
   if(allEvents.length===0)return;
-  var csv='时间,类型,访客ID,地区,设备,浏览器,停留(秒),页面,事件类型\n';
+  var csv='时间,类型,访客ID,地区,设备,浏览器,停留(秒),页面,事件类型\\n';
   allEvents.forEach(function(e){
     var t=e.timestamp?new Date(e.timestamp).toLocaleString('zh-CN'):'';
     var et=e.event_type||e.eventType||'';
