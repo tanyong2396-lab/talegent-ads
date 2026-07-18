@@ -489,35 +489,66 @@ export default {
         const limit = parseInt(url.searchParams.get("limit") || "50");
         const type = url.searchParams.get("type") || "";
 
-        // List ALL keys in KV (no prefix filter to catch all stored data)
-        const kvList = await env.VISITOR_DATA.list({ limit: 1000 });
+        // 超时控制：5秒内必须返回
+        const TIMEOUT_MS = 5000;
+        const startTime = Date.now();
 
-        // Fetch all event-like keys (skip stats_* keys)
-        const eventPromises = kvList.keys
-          .filter(k => k.name.startsWith("evt_") || k.name.startsWith("event_") || k.name.startsWith("track_"))
-          .map(k => env.VISITOR_DATA.get(k.name));
-        const eventStrings = await Promise.all(eventPromises);
+        // 分页循环取所有 evt_ 开头的 key
+        let allKeys = [];
+        let cursor = undefined;
+        while (true) {
+          const elapsed = Date.now() - startTime;
+          if (elapsed > TIMEOUT_MS) {
+            return new Response(JSON.stringify({ error: "Timeout", partial: true, total: allKeys.length, events: [] }), {
+              status: 408, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+            });
+          }
+          const result = await env.VISITOR_DATA.list({ prefix: "evt_", limit: 1000, cursor: cursor });
+          allKeys = allKeys.concat(result.keys);
+          if (!result.list_complete) {
+            cursor = result.cursor;
+          } else {
+            break;
+          }
+        }
 
-        // Parse and filter
-        let events = eventStrings
-          .filter(s => s !== null)
-          .map(s => JSON.parse(s));
+        // 取所有 evt_ key 的值
+        const eventStrings = [];
+        for (let i = 0; i < allKeys.length; i++) {
+          const elapsed = Date.now() - startTime;
+          if (elapsed > TIMEOUT_MS) {
+            // 超时，返回已获取的部分数据
+            let partialEvents = eventStrings.filter(s => s !== null).map(s => JSON.parse(s));
+            if (type) partialEvents = partialEvents.filter(e => e.event_type === type || e.eventType === type);
+            partialEvents.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            partialEvents = partialEvents.slice(0, limit);
+            return new Response(JSON.stringify({ total: partialEvents.length, events: partialEvents, partial: true }), {
+              headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+            });
+          }
+          const val = await env.VISITOR_DATA.get(allKeys[i].name);
+          eventStrings.push(val);
+        }
 
-        // Filter by event type if specified (support both camelCase and snake_case)
+        // 解析
+        let events = eventStrings.filter(s => s !== null).map(s => JSON.parse(s));
+
+        // 按事件类型过滤
         if (type) {
           events = events.filter(e => e.event_type === type || e.eventType === type);
         }
 
-        // Sort by timestamp descending (newest first)
+        // 按时间戳降序排序，只取最新的 limit 条
         events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        // Apply limit
         events = events.slice(0, limit);
 
         return new Response(JSON.stringify({ total: events.length, events: events }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         });
       } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }
+    }} catch (err) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
       }
     }
