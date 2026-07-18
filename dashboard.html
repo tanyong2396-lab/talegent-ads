@@ -334,7 +334,7 @@ function exportCSV(){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='talegent_events.csv';a.click()
 }
 
-async async function refreshData(){
+async function refreshData(){
   document.getElementById('loading').style.display='block';
   document.getElementById('dashboard').style.display='none';
   document.getElementById('error').style.display='none';
