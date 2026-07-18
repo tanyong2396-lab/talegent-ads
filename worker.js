@@ -489,13 +489,32 @@ export default {
         const limit = parseInt(url.searchParams.get("limit") || "50");
         const type = url.searchParams.get("type") || "";
 
-        // List ALL keys in KV (no prefix filter to catch all stored data)
-        const kvList = await env.VISITOR_DATA.list({ limit: 1000 });
+        // List ALL event keys in KV with pagination to handle large datasets
+        let allEventKeys = [];
+        let cursor = undefined;
+        let pageSize = 1000;
+        
+        do {
+          const listOptions = { limit: pageSize };
+          if (cursor) {
+            listOptions.cursor = cursor;
+          }
+          const kvList = await env.VISITOR_DATA.list(listOptions);
+          
+          // Collect event-like keys (skip stats_* keys)
+          const eventKeys = kvList.keys.filter(k => 
+            k.name.startsWith("evt_") || k.name.startsWith("event_") || k.name.startsWith("track_")
+          );
+          allEventKeys = allEventKeys.concat(eventKeys);
+          
+          cursor = kvList.cursor;
+        } while (cursor);
 
-        // Fetch all event-like keys (skip stats_* keys)
-        const eventPromises = kvList.keys
-          .filter(k => k.name.startsWith("evt_") || k.name.startsWith("event_") || k.name.startsWith("track_"))
-          .map(k => env.VISITOR_DATA.get(k.name));
+        // Sort keys by name (which includes timestamp) descending to get newest first
+        allEventKeys.sort((a, b) => b.name.localeCompare(a.name));
+        
+        // Fetch event data (only up to the requested limit)
+        const eventPromises = allEventKeys.slice(0, limit).map(k => env.VISITOR_DATA.get(k.name));
         const eventStrings = await Promise.all(eventPromises);
 
         // Parse and filter
@@ -507,12 +526,6 @@ export default {
         if (type) {
           events = events.filter(e => e.event_type === type || e.eventType === type);
         }
-
-        // Sort by timestamp descending (newest first)
-        events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        // Apply limit
-        events = events.slice(0, limit);
 
         return new Response(JSON.stringify({ total: events.length, events: events }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
