@@ -620,7 +620,7 @@ export default {
     // Serve tracker-client.js
     if (path === "/tracker-client.js") {
       return new Response(TRACKER_CLIENT_JS, {
-        headers: { "Content-Type": "application/javascript", "Cache-Control": "public, max-age=3600" },
+        headers: { "Content-Type": "application/javascript", "Cache-Control": "no-cache, max-age=0" },
       });
     }
 
