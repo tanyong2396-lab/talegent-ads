@@ -489,24 +489,19 @@ export default {
         const limit = parseInt(url.searchParams.get("limit") || "50");
         const type = url.searchParams.get("type") || "";
 
-        // List ALL event keys in KV with pagination to handle large datasets
+        // List event keys using prefix filter for efficiency (avoids full KV scan)
         let allEventKeys = [];
         let cursor = undefined;
         let pageSize = 1000;
         
+        // Use prefix filter to only get event keys (skip stats_* and click_* keys)
         do {
-          const listOptions = { limit: pageSize };
+          const listOptions = { limit: pageSize, prefix: "evt_" };
           if (cursor) {
             listOptions.cursor = cursor;
           }
           const kvList = await env.VISITOR_DATA.list(listOptions);
-          
-          // Collect event-like keys (skip stats_* keys)
-          const eventKeys = kvList.keys.filter(k => 
-            k.name.startsWith("evt_") || k.name.startsWith("event_") || k.name.startsWith("track_")
-          );
-          allEventKeys = allEventKeys.concat(eventKeys);
-          
+          allEventKeys = allEventKeys.concat(kvList.keys);
           cursor = kvList.cursor;
         } while (cursor);
 
