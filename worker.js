@@ -343,7 +343,7 @@ function exportCSV(){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='talegent_events.csv';a.click()
 }
 
-async function refreshData(){
+async async function refreshData(){
   document.getElementById('loading').style.display='block';
   document.getElementById('dashboard').style.display='none';
   document.getElementById('error').style.display='none';
@@ -489,27 +489,13 @@ export default {
         const limit = parseInt(url.searchParams.get("limit") || "50");
         const type = url.searchParams.get("type") || "";
 
-        // List event keys using prefix filter for efficiency (avoids full KV scan)
-        let allEventKeys = [];
-        let cursor = undefined;
-        let pageSize = 1000;
-        
-        // Use prefix filter to only get event keys (skip stats_* and click_* keys)
-        do {
-          const listOptions = { limit: pageSize, prefix: "evt_" };
-          if (cursor) {
-            listOptions.cursor = cursor;
-          }
-          const kvList = await env.VISITOR_DATA.list(listOptions);
-          allEventKeys = allEventKeys.concat(kvList.keys);
-          cursor = kvList.cursor;
-        } while (cursor);
+        // List ALL keys in KV (no prefix filter to catch all stored data)
+        const kvList = await env.VISITOR_DATA.list({ limit: 1000 });
 
-        // Sort keys by name (which includes timestamp) descending to get newest first
-        allEventKeys.sort((a, b) => b.name.localeCompare(a.name));
-        
-        // Fetch event data (only up to the requested limit)
-        const eventPromises = allEventKeys.slice(0, limit).map(k => env.VISITOR_DATA.get(k.name));
+        // Fetch all event-like keys (skip stats_* keys)
+        const eventPromises = kvList.keys
+          .filter(k => k.name.startsWith("evt_") || k.name.startsWith("event_") || k.name.startsWith("track_"))
+          .map(k => env.VISITOR_DATA.get(k.name));
         const eventStrings = await Promise.all(eventPromises);
 
         // Parse and filter
@@ -521,6 +507,12 @@ export default {
         if (type) {
           events = events.filter(e => e.event_type === type || e.eventType === type);
         }
+
+        // Sort by timestamp descending (newest first)
+        events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        // Apply limit
+        events = events.slice(0, limit);
 
         return new Response(JSON.stringify({ total: events.length, events: events }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
