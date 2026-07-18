@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talegent 数据仪表盘</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',-apple-system,sans-serif;background:#f0f2f5;color:#1a1a2e}
+.header{background:linear-gradient(135deg,#0A1F44,#1A3A6A);color:#fff;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.header h1{font-size:1.4rem}
+.header .subtitle{color:#88AACC;font-size:.85rem}
+.header .controls{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.header .controls select,.header .controls input{padding:.4rem .6rem;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:.85rem}
+.header .controls select option{color:#1a1a2e;background:#fff}
+.header .controls button{padding:.4rem 1rem;border-radius:6px;border:none;background:#1A73E8;color:#fff;cursor:pointer;font-size:.85rem}
+.header .controls button:hover{background:#1557B0}
+.header .controls .refresh-btn{background:#009688}
+.header .controls .refresh-btn:hover{background:#00796B}
+.header .controls .export-btn{background:#FF6F00}
+.header .controls .export-btn:hover{background:#E65100}
+.header .last-update{color:#88AACC;font-size:.8rem}
+.container{max-width:1400px;margin:0 auto;padding:1rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.8rem;margin-bottom:1rem}
+.kpi-card{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
+.kpi-card .kpi-value{font-size:1.8rem;font-weight:800;color:#0A1F44}
+.kpi-card .kpi-label{font-size:.8rem;color:#666;margin-top:.2rem}
+.kpi-card.blue .kpi-value{color:#1A73E8}
+.kpi-card.green .kpi-value{color:#009688}
+.kpi-card.orange .kpi-value{color:#FF6F00}
+.kpi-card.purple .kpi-value{color:#6A1B9A}
+.kpi-card.red .kpi-value{color:#C62828}
+.kpi-card.teal .kpi-value{color:#00897B}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.chart-card{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.chart-card.full{grid-column:1/-1}
+.chart-card h3{font-size:.95rem;color:#0A1F44;margin-bottom:.5rem}
+.chart-card .chart-wrapper{position:relative;height:250px}
+.chart-card .chart-wrapper.tall{height:300px}
+.chart-card .chart-wrapper.short{height:200px}
+.dist-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1rem}
+.dist-card{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.dist-card h3{font-size:.9rem;color:#0A1F44;margin-bottom:.3rem;text-align:center}
+.dist-card .chart-wrapper{position:relative;height:200px}
+.hot-pages{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:1rem}
+.hot-pages h3{font-size:.95rem;color:#0A1F44;margin-bottom:.5rem}
+.hot-pages table{width:100%;border-collapse:collapse;font-size:.85rem}
+.hot-pages th{background:#f5f7fa;padding:.5rem;text-align:left;font-weight:600;color:#0A1F44}
+.hot-pages td{padding:.4rem .5rem;border-bottom:1px solid #f0f0f0}
+.hot-pages tr:hover td{background:#f8f9ff}
+.hot-pages .rank{font-weight:700;color:#1A73E8;width:30px;text-align:center}
+.events-section{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:1rem}
+.events-section .header-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem}
+.events-section .header-row h3{font-size:.95rem;color:#0A1F44}
+.events-section .filters{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.events-section .filters select,.events-section .filters input{padding:.3rem .5rem;border-radius:6px;border:1px solid #ddd;font-size:.8rem}
+.table-wrapper{overflow-x:auto}
+.events-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.events-table th{background:#f5f7fa;padding:.5rem;text-align:left;font-weight:600;color:#0A1F44;white-space:nowrap;position:sticky;top:0}
+.events-table td{padding:.4rem .5rem;border-bottom:1px solid #f0f0f0;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.events-table tr:hover td{background:#f8f9ff}
+.events-table .event-type{display:inline-block;padding:.15rem .5rem;border-radius:10px;font-size:.7rem;font-weight:600}
+.event-pageview{background:#E3F2FD;color:#1565C0}
+.event-click{background:#FFF3E0;color:#E65100}
+.event-whatsapp{background:#E8F5E9;color:#2E7D32}
+.event-email{background:#F3E5F5;color:#7B1FA2}
+.event-scroll{background:#E0F7FA;color:#00838F}
+.event-time_on_page{background:#FBE9E7;color:#BF360C}
+.event-pageleave{background:#ECEFF1;color:#455A64}
+.events-table .expand-btn{cursor:pointer;color:#1A73E8;font-size:.75rem}
+.events-table .detail-row{display:none}
+.events-table .detail-row td{background:#fafafa;padding:.5rem 1rem}
+.events-table .detail-row pre{font-size:.7rem;max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.loading{text-align:center;padding:3rem;color:#666}
+.loading .spinner{display:inline-block;width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1A73E8;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error{text-align:center;padding:2rem;color:#C62828;background:#FFEBEE;border-radius:10px;margin:1rem 0}
+@media(max-width:768px){.charts-row{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.header{padding:.8rem 1rem}.header h1{font-size:1.1rem}.kpi-card .kpi-value{font-size:1.4rem}.chart-card .chart-wrapper{height:200px}.dist-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr 1fr;gap:.5rem}.kpi-card{padding:.6rem}.kpi-card .kpi-value{font-size:1.2rem}.dist-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><h1>📊 Talegent 数据仪表盘</h1><div class="subtitle">Sodium UPS 网站访问分析</div></div>
+  <div class="controls">
+    <span class="last-update" id="lastUpdate">最后更新：--</span>
+    <select id="dateRange"><option value="7">近7天</option><option value="30" selected>近30天</option><option value="90">近90天</option></select>
+    <button class="refresh-btn" onclick="refreshData()">🔄 刷新</button>
+    <button class="export-btn" onclick="exportCSV()">📥 导出CSV</button>
+  </div>
+</div>
+<div class="container">
+  <div id="loading" class="loading"><div class="spinner"></div><div>正在加载数据...</div></div>
+  <div id="error" class="error" style="display:none;"></div>
+  <div id="dashboard" style="display:none;">
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="charts-row"><div class="chart-card full"><h3>📈 PV/UV 趋势</h3><div class="chart-wrapper tall"><canvas id="trendChart"></canvas></div></div></div>
+    <div class="charts-row">
+      <div class="chart-card"><h3>🕐 按小时分布</h3><div class="chart-wrapper"><canvas id="hourlyChart"></canvas></div></div>
+      <div class="chart-card"><h3>📊 每日事件总量</h3><div class="chart-wrapper"><canvas id="dailyEventsChart"></canvas></div></div>
+    </div>
+    <div class="dist-row">
+      <div class="dist-card"><h3>🌍 地区分布</h3><div class="chart-wrapper short"><canvas id="countryChart"></canvas></div></div>
+      <div class="dist-card"><h3>📱 设备类型</h3><div class="chart-wrapper short"><canvas id="deviceChart"></canvas></div></div>
+      <div class="dist-card"><h3>💻 操作系统</h3><div class="chart-wrapper short"><canvas id="osChart"></canvas></div></div>
+      <div class="dist-card"><h3>🌐 浏览器</h3><div class="chart-wrapper short"><canvas id="browserChart"></canvas></div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><h3>🔗 来源渠道</h3><div class="chart-wrapper short"><canvas id="referrerChart"></canvas></div></div>
+      <div class="chart-card"><h3>📋 事件类型分布</h3><div class="chart-wrapper short"><canvas id="eventTypeChart"></canvas></div></div>
+    </div>
+    <div class="hot-pages" id="hotPages"></div>
+    <div class="events-section">
+      <div class="header-row">
+        <h3>📝 详细事件记录</h3>
+        <div class="filters">
+          <select id="eventTypeFilter" onchange="filterEvents()">
+            <option value="">全部类型</option><option value="pageview">页面浏览</option><option value="click">点击</option>
+            <option value="whatsapp_click">WhatsApp</option><option value="email_click">邮件</option>
+            <option value="scroll">滚动</option><option value="time_on_page">停留</option><option value="pageleave">离开</option>
+          </select>
+          <input type="date" id="dateFrom" onchange="filterEvents()">
+          <input type="date" id="dateTo" onchange="filterEvents()">
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="events-table">
+          <thead><tr><th>时间</th><th>类型</th><th>访客ID</th><th>地区</th><th>设备</th><th>浏览器</th><th>停留(秒)</th><th>页面</th><th></th></tr></thead>
+          <tbody id="eventsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const TOKEN='talegent_admin_2026';
+const API_BASE="https://talegent-tracker-api.tanyong2396.workers.dev";
+let allEvents=[];
+let charts={};
+
+function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+async function fetchData(){
+  var r=await fetch(API_BASE+'/api/events?token='+TOKEN+'&limit=1000');
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  var d=await r.json();
+  allEvents=d.events||[];
+  document.getElementById('lastUpdate').textContent='最后更新：'+new Date().toLocaleString('zh-CN');
+  return allEvents
+}
+
+function processData(events,days){
+  var now=new Date(),cutoff=new Date(now.getTime()-days*86400000);
+  var filtered=events.filter(function(e){return new Date(e.timestamp)>=cutoff});
+  var totalPV=filtered.filter(function(e){return e.event_type==='pageview'||e.eventType==='pageview'}).length;
+  var today=new Date().toISOString().split('T')[0];
+  var todayPV=filtered.filter(function(e){var d=(e.timestamp||'').split('T')[0];return d===today&&(e.event_type==='pageview'||e.eventType==='pageview')}).length;
+  var allVis=new Set(),todayVis=new Set();
+  filtered.forEach(function(e){var v=e.visitor_id||e.visitorId;if(v)allVis.add(v);var d=(e.timestamp||'').split('T')[0];if(d===today&&v)todayVis.add(v)});
+  var pvs=filtered.filter(function(e){return e.event_type==='pageview'||e.eventType==='pageview'});
+  var avgTime=0;
+  if(pvs.length>0){var t=0;pvs.forEach(function(e){t+=e.time_on_page||e.timeOnPage||0});avgTime=Math.round(t/pvs.length/1000)}
+  var sess={};
+  filtered.forEach(function(e){var s=e.session_id||e.sessionId;if(s){if(!sess[s])sess[s]=[];sess[s].push(e)}});
+  var sKeys=Object.keys(sess),bounced=0;
+  sKeys.forEach(function(s){if(sess[s].length<=1)bounced++});
+  var bounceRate=sKeys.length>0?Math.round(bounced/sKeys.length*100):0;
+  var pages={};
+  filtered.forEach(function(e){var u=e.url||'';if(u)pages[u]=(pages[u]||0)+1});
+  var hotPages=Object.entries(pages).sort(function(a,b){return b[1]-a[1]}).slice(0,5);
+  var daily={};
+  for(var i=0;i<days;i++){var d=new Date(now.getTime()-i*86400000).toISOString().split('T')[0];daily[d]={pv:0,uv:new Set()}}
+  filtered.forEach(function(e){var d=(e.timestamp||'').split('T')[0];if(daily[d]){daily[d].pv++;var v=e.visitor_id||e.visitorId;if(v)daily[d].uv.add(v)}});
+  var dl=Object.keys(daily).sort();
+  var dpv=dl.map(function(d){return daily[d].pv});
+  var duv=dl.map(function(d){return daily[d].uv.size});
+  var hourly=Array(24).fill(0);
+  filtered.forEach(function(e){var h=parseInt((e.timestamp||'').split('T')[1]?.split(':')[0]);if(h>=0&&h<24)hourly[h]++});
+  var de={};
+  filtered.forEach(function(e){var d=(e.timestamp||'').split('T')[0];de[d]=(de[d]||0)+1});
+  var deLabels=Object.keys(de).sort().slice(-days);
+  var deValues=deLabels.map(function(d){return de[d]});
+  var countries={},devices={},osDist={},browsers={};
+  filtered.forEach(function(e){var c=e.country||'unknown';countries[c]=(countries[c]||0)+1;var d=e.device_type||e.deviceType||'unknown';devices[d]=(devices[d]||0)+1;var o=e.os||'unknown';osDist[o]=(osDist[o]||0)+1;var b=e.browser||'unknown';browsers[b]=(browsers[b]||0)+1});
+  var refs={};
+  filtered.forEach(function(e){
+    var r=e.referrer||'(direct)',cat='direct';
+    if(r!=='(direct)'&&r!==''){
+      if(r.indexOf('google')!==-1||r.indexOf('baidu')!==-1||r.indexOf('bing')!==-1)cat='search';
+      else if(r.indexOf('facebook')!==-1||r.indexOf('twitter')!==-1||r.indexOf('linkedin')!==-1||r.indexOf('instagram')!==-1)cat='social';
+      else if(r.indexOf('mail')!==-1||r.indexOf('outlook')!==-1)cat='email';
+      else cat='other'
+    }
+    refs[cat]=(refs[cat]||0)+1
+  });
+  var ets={};
+  filtered.forEach(function(e){var et=e.event_type||e.eventType||'unknown';ets[et]=(ets[et]||0)+1});
+  var wa=filtered.filter(function(e){return e.event_type==='whatsapp_click'||e.eventType==='whatsapp_click'}).length;
+  var em=filtered.filter(function(e){return e.event_type==='email_click'||e.eventType==='email_click'}).length;
+  var sdurs={};
+  filtered.forEach(function(e){var s=e.session_id||e.sessionId;if(s){var d=e.time_on_page||e.timeOnPage||e.duration||0;if(!sdurs[s])sdurs[s]={c:0,t:0};sdurs[s].c++;sdurs[s].t+=d}});
+  var avgSess=0,sdKeys=Object.keys(sdurs);
+  if(sdKeys.length>0){var ta=0;sdKeys.forEach(function(s){ta+=sdurs[s].t/sdurs[s].c});avgSess=Math.round(ta/sdKeys.length/1000)}
+  return{totalPV,todayPV,totalUV:allVis.size,todayUV:todayVis.size,avgTime,bounceRate,hotPages,dailyLabels:dl,dailyPV:dpv,dailyUV:duv,hourly,deLabels,deValues,countries,devices,osDist,browsers,referrers:refs,eventTypes:ets,whatsappClicks:wa,emailClicks:em,avgSessionDuration:avgSess}
+}
+
+function renderKPI(s){
+  document.getElementById('kpiGrid').innerHTML=
+    '<div class="kpi-card blue"><div class="kpi-value">'+s.totalPV+'</div><div class="kpi-label">总访问量 (PV)</div></div>'+
+    '<div class="kpi-card green"><div class="kpi-value">'+s.todayPV+'</div><div class="kpi-label">今日访问量</div></div>'+
+    '<div class="kpi-card purple"><div class="kpi-value">'+s.totalUV+'</div><div class="kpi-label">独立访客 (UV)</div></div>'+
+    '<div class="kpi-card orange"><div class="kpi-value">'+s.todayUV+'</div><div class="kpi-label">今日访客</div></div>'+
+    '<div class="kpi-card teal"><div class="kpi-value">'+s.avgTime+'s</div><div class="kpi-label">平均停留时长</div></div>'+
+    '<div class="kpi-card red"><div class="kpi-value">'+s.bounceRate+'%</div><div class="kpi-label">跳出率</div></div>'+
+    '<div class="kpi-card blue"><div class="kpi-value">'+s.avgSessionDuration+'s</div><div class="kpi-label">平均会话时长</div></div>'+
+    '<div class="kpi-card green"><div class="kpi-value">'+s.whatsappClicks+'</div><div class="kpi-label">WhatsApp点击</div></div>'
+}
+
+function renderHotPages(s){
+  var d=document.getElementById('hotPages');
+  if(s.hotPages.length===0){d.innerHTML='<h3>🔥 最热页面</h3><p style="color:#999;font-size:.85rem;">暂无数据</p>';return}
+  var h='<h3>🔥 最热页面 TOP 5</h3><table><thead><tr><th>#</th><th>URL</th><th>访问量</th></tr></thead><tbody>';
+  for(var i=0;i<s.hotPages.length;i++)h+='<tr><td class="rank">'+(i+1)+'</td><td>'+escapeHtml(s.hotPages[i][0])+'</td><td>'+s.hotPages[i][1]+'</td></tr>';
+  d.innerHTML=h+'</tbody></table>'
+}
+
+function renderTrendChart(s){
+  if(charts.trend)charts.trend.destroy();
+  charts.trend=new Chart(document.getElementById('trendChart').getContext('2d'),{
+    type:'line',data:{labels:s.dailyLabels,datasets:[
+      {label:'PV',data:s.dailyPV,borderColor:'#1A73E8',backgroundColor:'rgba(26,115,232,0.1)',fill:true,tension:.3,pointRadius:3},
+      {label:'UV',data:s.dailyUV,borderColor:'#FF6F00',backgroundColor:'rgba(255,111,0,0.1)',fill:true,tension:.3,pointRadius:3}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  })
+}
+
+function renderHourlyChart(s){
+  if(charts.hourly)charts.hourly.destroy();
+  var lb=[];for(var i=0;i<24;i++)lb.push(i+'时');
+  charts.hourly=new Chart(document.getElementById('hourlyChart').getContext('2d'),{
+    type:'line',data:{labels:lb,datasets:[{label:'访问量',data:s.hourly,borderColor:'#009688',backgroundColor:'rgba(0,150,136,0.1)',fill:true,tension:.3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  })
+}
+
+function renderDailyEventsChart(s){
+  if(charts.dailyEvents)charts.dailyEvents.destroy();
+  charts.dailyEvents=new Chart(document.getElementById('dailyEventsChart').getContext('2d'),{
+    type:'bar',data:{labels:s.deLabels,datasets:[{label:'事件数',data:s.deValues,backgroundColor:'rgba(106,27,154,0.6)',borderColor:'#6A1B9A',borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  })
+}
+
+function renderPieChart(id,labels,data){
+  if(charts[id])charts[id].destroy();
+  var colors=['#1A73E8','#FF6F00','#009688','#6A1B9A','#C62828','#2E7D32','#FDD835','#8D6E63','#78909C','#E91E63'];
+  charts[id]=new Chart(document.getElementById(id).getContext('2d'),{
+    type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:colors}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:12}}}}
+  })
+}
+
+function renderDistCharts(s){
+  var c=Object.entries(s.countries).sort(function(a,b){return b[1]-a[1]}).slice(0,8);
+  renderPieChart('countryChart',c.map(function(d){return d[0]}),c.map(function(d){return d[1]}));
+  var d=Object.entries(s.devices).sort(function(a,b){return b[1]-a[1]});
+  renderPieChart('deviceChart',d.map(function(d){return d[0]}),d.map(function(d){return d[1]}));
+  var o=Object.entries(s.osDist).sort(function(a,b){return b[1]-a[1]}).slice(0,6);
+  renderPieChart('osChart',o.map(function(d){return d[0]}),o.map(function(d){return d[1]}));
+  var b=Object.entries(s.browsers).sort(function(a,b){return b[1]-a[1]}).slice(0,6);
+  renderPieChart('browserChart',b.map(function(d){return d[0]}),b.map(function(d){return d[1]}));
+  var r=Object.entries(s.referrers).sort(function(a,b){return b[1]-a[1]});
+  renderPieChart('referrerChart',r.map(function(d){return d[0]}),r.map(function(d){return d[1]}));
+  var e=Object.entries(s.eventTypes).sort(function(a,b){return b[1]-a[1]});
+  renderPieChart('eventTypeChart',e.map(function(d){return d[0]}),e.map(function(d){return d[1]}))
+}
+
+function filterEvents(){renderEventsTable(allEvents)}
+
+function renderEventsTable(events){
+  var tb=document.getElementById('eventsBody');
+  var tf=document.getElementById('eventTypeFilter').value;
+  var df=document.getElementById('dateFrom').value;
+  var dt=document.getElementById('dateTo').value;
+  var f=events.slice();
+  if(tf)f=f.filter(function(e){return(e.event_type||e.eventType)===tf});
+  if(df)f=f.filter(function(e){return(e.timestamp||'').split('T')[0]>=df});
+  if(dt)f=f.filter(function(e){return(e.timestamp||'').split('T')[0]<=dt});
+  f.sort(function(a,b){return new Date(b.timestamp)-new Date(a.timestamp)});
+  f=f.slice(0,100);
+  if(f.length===0){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:#999;padding:2rem;">暂无数据</td></tr>';return}
+  var h='';
+  for(var i=0;i<f.length;i++){
+    var e=f[i],et=e.event_type||e.eventType||'unknown',cls='';
+    if(et.indexOf('whatsapp')!==-1)cls='event-whatsapp';else if(et.indexOf('email')!==-1)cls='event-email';
+    else if(et==='pageview')cls='event-pageview';else if(et==='click')cls='event-click';
+    else if(et==='scroll')cls='event-scroll';else if(et==='time_on_page')cls='event-time_on_page';
+    else if(et==='pageleave')cls='event-pageleave';
+    var t=e.timestamp?new Date(e.timestamp).toLocaleString('zh-CN'):'-';
+    var vid=(e.visitor_id||e.visitorId||'-').substring(0,16);
+    var dur=e.time_on_page||e.timeOnPage||e.duration||0;
+    var ds=dur>0?Math.round(dur/1000):'-';
+    var url=e.url||'-',ud=url.length>40?url.substring(0,40)+'...':url;
+    h+='<tr><td>'+t+'</td><td><span class="event-type '+cls+'">'+et+'</span></td>'+
+      '<td title="'+escapeHtml(e.visitor_id||e.visitorId||'')+'">'+escapeHtml(vid)+'</td>'+
+      '<td>'+(e.country||'-')+'</td><td>'+(e.device_type||e.deviceType||'-')+'</td>'+
+      '<td>'+(e.browser||'-')+'</td><td>'+ds+'</td>'+
+      '<td title="'+escapeHtml(url)+'">'+escapeHtml(ud)+'</td>'+
+      '<td><span class="expand-btn" onclick="toggleDetail('+i+')">▶</span></td></tr>'+
+      '<tr class="detail-row" id="detail-'+i+'"><td colspan="9"><pre>'+escapeHtml(JSON.stringify(e,null,2))+'</pre></td></tr>'
+  }
+  tb.innerHTML=h
+}
+
+function toggleDetail(i){var r=document.getElementById('detail-'+i);r.style.display=r.style.display==='table-row'?'none':'table-row'}
+
+function exportCSV(){
+  if(allEvents.length===0)return;
+  var csv='时间,类型,访客ID,地区,设备,浏览器,停留(秒),页面,事件类型\n';
+  allEvents.forEach(function(e){
+    var t=e.timestamp?new Date(e.timestamp).toLocaleString('zh-CN'):'';
+    var et=e.event_type||e.eventType||'';
+    var vid=e.visitor_id||e.visitorId||'';
+    var c=e.country||'';
+    var d=e.device_type||e.deviceType||'';
+    var b=e.browser||'';
+    var dur=e.time_on_page||e.timeOnPage||e.duration||0;
+    var ds=dur>0?Math.round(dur/1000):'';
+    var url=e.url||'';
+    csv+=t+','+et+','+vid+','+c+','+d+','+b+','+ds+','+url+','+et+'\n'
+  });
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='talegent_events.csv';a.click()
+}
+
+async async function refreshData(){
+  document.getElementById('loading').style.display='block';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('error').style.display='none';
+  try{
+    var events=await fetchData();
+    var days=parseInt(document.getElementById('dateRange').value);
+    var stats=processData(events,days);
+    renderKPI(stats);
+    renderHotPages(stats);
+    renderTrendChart(stats);
+    renderHourlyChart(stats);
+    renderDailyEventsChart(stats);
+    renderDistCharts(stats);
+    renderEventsTable(events);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('dashboard').style.display='block'
+  }catch(err){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error').style.display='block';
+    document.getElementById('error').innerHTML='<strong>❌ 加载失败</strong><div class="detail">'+err.message+'</div>'
+  }
+}
+
+document.getElementById('dateRange').addEventListener('change',function(){
+  var days=parseInt(this.value);
+  var stats=processData(allEvents,days);
+  renderKPI(stats);
+  renderHotPages(stats);
+  renderTrendChart(stats);
+  renderHourlyChart(stats);
+  renderDailyEventsChart(stats);
+  renderDistCharts(stats)
+});
+
+refreshData();
+setInterval(refreshData,60000);
+</script>
+</body>
+</html>
