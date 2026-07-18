@@ -641,7 +641,8 @@ export default {
     // POST /api/track - receive tracking data
     if (request.method === "POST" && path === "/api/track") {
       try {
-        const data = await request.json();
+        const rawText = await request.text();
+        let data = JSON.parse(rawText);
         data.timestamp = new Date().toISOString();
         data.id = crypto.randomUUID();
         data.country = request.headers.get("CF-IPCountry") || "unknown";
