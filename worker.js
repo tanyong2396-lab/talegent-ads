@@ -425,6 +425,15 @@ export default {
         data.country = request.headers.get("CF-IPCountry") || "unknown";
         data.city = request.headers.get("CF-IPCity") || "unknown";
 
+        // 兼容 camelCase 和 snake_case 字段名
+        data.visitor_id = data.visitor_id || data.visitorId || "";
+        data.session_id = data.session_id || data.sessionId || "";
+        data.event_type = data.event_type || data.eventType || "";
+        data.device_type = data.device_type || data.deviceType || "";
+        data.time_on_page = data.time_on_page || data.timeOnPage || 0;
+        data.site_name = data.site_name || data.siteName || "";
+        data.site_version = data.site_version || data.siteVersion || "";
+
         if (env.VISITOR_DATA) {
           const key = "evt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
           await env.VISITOR_DATA.put(key, JSON.stringify(data));
@@ -460,8 +469,6 @@ export default {
             }
           }
         }
-
-        return new Response(JSON.stringify({ success: true, id: data.id }), {        }
 
         return new Response(JSON.stringify({ success: true, id: data.id }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
