@@ -1194,7 +1194,7 @@ function renderEventsTable(events){
   if(tf)f=f.filter(function(e){return(e.event_type||e.eventType)===tf});
   if(df)f=f.filter(function(e){return(e.timestamp||'').split('T')[0]>=df});
   if(dt)f=f.filter(function(e){return(e.timestamp||'').split('T')[0]<=dt});
-  f.sort(function(a,b){return new Date(b.timestamp)-new Date(a.timestamp)});
+  f.sort(function(a,b){return Number(new Date(b.timestamp))-Number(new Date(a.timestamp))});
   f=f.slice(0,100);
   if(f.length===0){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:#999;padding:2rem;">暂无数据</td></tr>';return}
   var h='';
@@ -1407,7 +1407,7 @@ export default {
         }
 
         // Sort by timestamp descending (newest first)
-        events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        events.sort((a, b) => Number(new Date(b.timestamp)) - Number(new Date(a.timestamp)));
 
         // Apply limit
         events = events.slice(0, limit);
