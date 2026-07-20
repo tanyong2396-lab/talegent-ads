@@ -622,7 +622,305 @@
             </div>
         </div>
     </div>
-</section><!-- PRODUCTS -->
+</section>
+
+<section class="comparison" id="comparison">
+    <div class="container">
+        <h2 class="section-title">UPS Battery Performance Comparison</h2>
+        <p class="section-subtitle">Sodium-ion vs. Lead-acid vs. LFP &#8212; measured by UPS-critical metrics</p>
+        <div class="charts-grid">
+            <div class="chart-box">
+                <h4>Cycle Life (cycles)</h4>
+                <div class="bar-chart">
+                    <div class="bar-group"><div class="bar bar-gray" style="height:30px;">500</div><div class="bar-label">Lead-acid</div></div>
+                    <div class="bar-group"><div class="bar bar-blue" style="height:160px;">3,000</div><div class="bar-label">LFP</div></div>
+                    <div class="bar-group"><div class="bar bar-orange" style="height:160px;">3,000+</div><div class="bar-label">Sodium-ion</div></div>
+                </div>
+            </div>
+            <div class="chart-box">
+                <h4>Cost per kWh (&#165;)</h4>
+                <div class="bar-chart">
+                    <div class="bar-group"><div class="bar bar-gray" style="height:140px;">0.50</div><div class="bar-label">Lead-acid</div></div>
+                    <div class="bar-group"><div class="bar bar-blue" style="height:170px;">0.60</div><div class="bar-label">LFP</div></div>
+                    <div class="bar-group"><div class="bar bar-orange" style="height:100px;">0.35</div><div class="bar-label">Sodium-ion</div></div>
+                </div>
+            </div>
+            <div class="chart-box">
+                <h4>Operating Temp Range (&#176;C)</h4>
+                <div class="bar-chart">
+                    <div class="bar-group"><div class="bar bar-gray" style="height:110px;">50</div><div class="bar-label">Lead-acid</div></div>
+                    <div class="bar-group"><div class="bar bar-blue" style="height:100px;">45</div><div class="bar-label">LFP</div></div>
+                    <div class="bar-group"><div class="bar bar-orange" style="height:175px;">80</div><div class="bar-label">Sodium-ion</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="comparison-table">
+                <thead><tr><th>UPS-Critical Feature</th><th>Lead-acid</th><th>LFP</th><th>Sodium-ion &#9733;</th></tr></thead>
+                <tbody>
+                    <tr><td>Thermal Runaway Risk</td><td>Low</td><td>Moderate-High</td><td class="highlight">None &#10003;</td></tr>
+                    <tr><td>Cold Temp (0&#176;C)</td><td>50% capacity</td><td>70% capacity</td><td class="highlight">90% capacity &#10003;</td></tr>
+                    <tr><td>Recharge Time to 80%</td><td>8-10 hours</td><td>1-2 hours</td><td class="highlight">30 min &#10003;</td></tr>
+                    <tr><td>Cycle Life (80% DoD)</td><td>300-500</td><td>2,000-4,000</td><td class="highlight">3,000+ &#10003;</td></tr>
+                    <tr><td>Calendar Life</td><td>3-5 years</td><td>8-10 years</td><td class="highlight">10-15 years &#10003;</td></tr>
+                    <tr><td>Maintenance</td><td>Regular watering</td><td>None</td><td class="highlight">None &#10003;</td></tr>
+                    <tr><td>Recyclability</td><td>Complex</td><td>Moderate</td><td class="highlight">100% &#10003;</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+
+
+<section class="tco-section" id="tco">
+    <div class="container">
+        <h2 class="section-title">Total Cost of Ownership Analysis</h2>
+        <p class="section-subtitle">Why sodium-ion saves you 50%+ over 10 years compared to lead-acid</p>
+        <div class="tco-grid">
+            <div class="tco-chart-box">
+                <h4>10-Year Cumulative Cost Comparison (Indexed)</h4>
+                <svg viewBox="0 0 500 200" style="width:100%;height:180px;">
+                    <line x1="50" y1="180" x2="480" y2="180" stroke="#334466" stroke-width="1"/>
+                    <line x1="50" y1="20" x2="50" y2="180" stroke="#334466" stroke-width="1"/>
+                    <text x="55" y="30" fill="#88AACC" font-size="10">400</text>
+                    <text x="55" y="80" fill="#88AACC" font-size="10">300</text>
+                    <text x="55" y="130" fill="#88AACC" font-size="10">200</text>
+                    <text x="55" y="175" fill="#88AACC" font-size="10">100</text>
+                    <!-- Lead-acid line (gray) -->
+                    <polyline points="50,130 95,130 140,80 185,80 230,80 275,30 320,30 365,30 410,20 455,20" fill="none" stroke="#9E9E9E" stroke-width="3" stroke-linejoin="round"/>
+                    <!-- Sodium-ion line (orange) -->
+                    <polyline points="50,105 95,105 140,105 185,105 230,105 275,105 320,105 365,105 410,105 455,105" fill="none" stroke="#FF6F00" stroke-width="3" stroke-linejoin="round"/>
+                    <!-- Dots -->
+                    <circle cx="50" cy="130" r="4" fill="#9E9E9E"/><circle cx="140" cy="80" r="4" fill="#9E9E9E"/><circle cx="275" cy="30" r="4" fill="#9E9E9E"/><circle cx="455" cy="20" r="4" fill="#9E9E9E"/>
+                    <circle cx="50" cy="105" r="4" fill="#FF6F00"/><circle cx="140" cy="105" r="4" fill="#FF6F00"/><circle cx="275" cy="105" r="4" fill="#FF6F00"/><circle cx="455" cy="105" r="4" fill="#FF6F00"/>
+                    <text x="50" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y1</text>
+                    <text x="95" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y2</text>
+                    <text x="140" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y3</text>
+                    <text x="185" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y4</text>
+                    <text x="230" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y5</text>
+                    <text x="275" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y6</text>
+                    <text x="320" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y7</text>
+                    <text x="365" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y8</text>
+                    <text x="410" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y9</text>
+                    <text x="455" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y10</text>
+                </svg>
+                <div class="tco-legend">
+                    <div class="tco-legend-item"><div class="tco-legend-dot" style="background:#9E9E9E;"></div>Lead-acid</div>
+                    <div class="tco-legend-item"><div class="tco-legend-dot" style="background:#FF6F00;"></div>Sodium-ion</div>
+                </div>
+            </div>
+            <div class="tco-breakdown">
+                <h4>&#128176; 10-Year Cost Comparison</h4>
+                <p><strong style="color:#9E9E9E;">Lead-acid (500 cycles):</strong></p>
+                <p>&#8226; Replace every 2-3 years</p>
+                <p>&#8226; 3-4 replacements needed</p>
+                <p>&#8226; Total: 3-4x initial cost</p>
+                <p style="margin-top:0.8rem;"><strong style="color:#FF6F00;">Sodium-ion (3,000+ cycles):</strong></p>
+                <p>&#8226; One-time installation</p>
+                <p>&#8226; No replacement for 10+ years</p>
+                <p>&#8226; Total: 1x initial cost</p>
+                <p class="highlight-text">&#128271; Savings: 50-60% over 10 years</p>
+            </div>
+        </div>
+        <div class="roi-metrics">
+            <div class="roi-item"><div class="value" style="color:var(--blue);">50-60%</div><div class="label">10-Year Cost Savings<br>vs. Lead-acid</div></div>
+            <div class="roi-item"><div class="value" style="color:var(--teal);">< 2 Years</div><div class="label">Payback Period<br>vs. LFP batteries</div></div>
+            <div class="roi-item"><div class="value" style="color:var(--orange);">3,000+</div><div class="label">Cycle Life<br>@ 80% DoD</div></div>
+            <div class="roi-item"><div class="value" style="color:var(--green);">10+ Years</div><div class="label">Service Life<br>No replacement needed</div></div>
+            <div class="roi-item"><div class="value" style="color:var(--purple);">30-40%</div><div class="label">Cost Reduction<br>vs. LFP per kWh</div></div>
+        </div>
+    </div>
+</section>
+
+
+
+<section id="applications">
+    <div class="container">
+        <h2 class="section-title">UPS Application Scenarios</h2>
+        <p class="section-subtitle">Where sodium-ion delivers the most value for UPS backup power</p>
+        <div class="apps-grid">
+            <div class="app-card" style="border-top-color:var(--blue);">
+                <div class="icon">&#127970;</div><h3 style="color:var(--blue);">Data Center UPS</h3>
+                <ul><li>24/7 critical load protection</li><li>Zero fire risk for server rooms</li><li>Space-efficient, no HVAC needed</li><li>Fast recharge between outages</li></ul>
+            </div>
+            <div class="app-card" style="border-top-color:var(--teal);">
+                <div class="icon">&#128241;</div><h3 style="color:var(--teal);">Telecom Base Station UPS</h3>
+                <ul><li>Remote sites with extreme temps</li><li>-20&#176;C to 60&#176;C operation</li><li>Low maintenance for rural areas</li><li>10+ year service life</li></ul>
+            </div>
+            <div class="app-card" style="border-top-color:var(--orange);">
+                <div class="icon">&#127997;</div><h3 style="color:var(--orange);">Industrial UPS</h3>
+                <ul><li>Factory automation backup</li><li>High-temperature workshops</li><li>Heavy load support (2C discharge)</li><li>Reliable for critical processes</li></ul>
+            </div>
+            <div class="app-card" style="border-top-color:var(--red);">
+                <div class="icon">&#128657;</div><h3 style="color:var(--red);">Medical Facility UPS</h3>
+                <ul><li>Life-critical equipment backup</li><li>Zero fire risk compliance</li><li>Silent, vibration-free operation</li><li>Instant power switching</li></ul>
+            </div>
+            <div class="app-card" style="border-top-color:var(--green);">
+                <div class="icon">&#127968;</div><h3 style="color:var(--green);">Home & Office UPS</h3>
+                <ul><li>Home office backup power</li><li>Solar + storage integration</li><li>Compact, wall-mountable design</li><li>Cost-effective solution</li></ul>
+            </div>
+            <div class="app-card" style="border-top-color:var(--purple);">
+                <div class="icon">&#127796;</div><h3 style="color:var(--purple);">Off-Grid & Remote UPS</h3>
+                <ul><li>Remote monitoring stations</li><li>Rural electrification backup</li><li>Microgrid energy storage</li><li>No regular maintenance needed</li></ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="specs">
+    <div class="container">
+        <h2 class="section-title">Technical Specifications</h2>
+        <p class="section-subtitle">Talegent 6.4Ah Sodium-ion Module &#8212; Designed for seamless UPS integration</p>
+        <div class="specs-grid">
+            <div>
+                <table class="specs-table">
+                    <tr><td>Battery Chemistry</td><td>Sodium-ion (Na-ion)</td></tr>
+                    <tr><td>Configuration</td><td>4S (4 cells in series)</td></tr>
+                    <tr><td>Nominal Voltage</td><td>12.8V</td></tr>
+                    <tr><td>Nominal Capacity</td><td>6.4Ah</td></tr>
+                    <tr><td>Nominal Energy</td><td>81.92Wh</td></tr>
+                    <tr><td>Operating Voltage</td><td>10.0V ~ 14.6V</td></tr>
+                    <tr><td>Standard Charge</td><td>0.2C (1.28A)</td></tr>
+                    <tr><td>Max Charge (Fast)</td><td>1C (6.4A) &#8212; 30min to 80%</td></tr>
+                    <tr><td>Max Discharge (UPS)</td><td>2C (12.8A) &#8212; peak load support</td></tr>
+                    <tr><td>Operating Temp</td><td>-20&#176;C ~ 60&#176;C</td></tr>
+                    <tr><td>Cycle Life</td><td>&#8805; 3,000 cycles @ 80% DoD</td></tr>
+                    <tr><td>Communication</td><td>RS485 / CAN / I&#178;C</td></tr>
+                    <tr><td>Dimensions</td><td>150 &#215; 65 &#215; 95 mm</td></tr>
+                    <tr><td>Weight</td><td>~1.2 kg</td></tr>
+                    <tr><td>Certification</td><td>UN38.3, CE, RoHS</td></tr>
+                </table>
+            </div>
+            <div class="integration-list">
+                <h3>&#128268; UPS Integration Features</h3>
+                <ul>
+                    <li>Drop-in replacement for lead-acid (same 12.8V)</li>
+                    <li>Compatible with standard UPS charging profiles</li>
+                    <li>BMS communicates via RS485/CAN with UPS controller</li>
+                    <li>Real-time battery status: voltage, current, temp, SOC</li>
+                    <li>Automatic load shedding at low SOC</li>
+                    <li>Parallel connection for higher capacity (up to 4 units)</li>
+                    <li>Hot-swappable module design for easy maintenance</li>
+                    <li>LED indicators: Power, Charging, Fault, SOC level</li>
+                    <li>Remote monitoring via Modbus protocol</li>
+                    <li>Firmware upgradeable via CAN bus</li>
+                </ul>
+                <p style="margin-top:1rem;padding:0.8rem;background:var(--navy);color:white;border-radius:8px;text-align:center;font-weight:600;">&#128161; Same voltage as lead-acid &#8212; no UPS modification needed!</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+<section class="partner" id="partner">
+    <div class="container">
+        <h2 class="section-title">We Are Looking for Partners!</h2>
+        <p class="section-subtitle">Join Talegent in revolutionizing the UPS industry with sodium-ion technology</p>
+        <div class="partner-grid">
+            <div class="partner-card">
+                <div class="icon">&#127758;</div>
+                <h4>Distributors & Resellers</h4>
+                <p>Join our global partner network and bring the world's first sodium-ion UPS to your market.</p>
+            </div>
+            <div class="partner-card">
+                <div class="icon">&#128295;</div>
+                <h4>System Integrators</h4>
+                <p>Integrate Vitality Series into your solutions for data centers, telecom, and industrial applications.</p>
+            </div>
+            <div class="partner-card">
+                <div class="icon">&#127873;</div>
+                <h4>OEM Partners</h4>
+                <p>Customize sodium-ion UPS for your brand with our flexible OEM/ODM program.</p>
+            </div>
+            <div class="partner-card">
+                <div class="icon">&#129514;</div>
+                <h4>Technology Partners</h4>
+                <p>Co-develop next-gen energy storage solutions with our R&D team.</p>
+            </div>
+        </div>
+        <h3 style="color:white;font-size:1.3rem;margin-bottom:1.5rem;">&#128161; Why Partner with Talegent?</h3>
+        <div class="partner-benefits">
+            <div class="partner-benefit">
+                <div class="icon">&#127919;</div>
+                <p><strong style="color:white;">First-mover advantage</strong><br>in sodium-ion UPS market</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128218;</div>
+                <p><strong style="color:white;">Comprehensive support</strong><br>Technical support & training</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128176;</div>
+                <p><strong style="color:white;">Competitive pricing</strong><br>& territory protection</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128240;</div>
+                <p><strong style="color:white;">Marketing materials</strong><br>Sales enablement resources</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128640;</div>
+                <p><strong style="color:white;">Joint development</strong><br>Product innovation opportunities</p>
+            </div>
+        </div>
+    </div>
+</section><section class="cta-section" id="contact">
+    <h2>Ready to Partner with Talegent?</h2>
+    <p>Contact us today to explore partnership opportunities</p>
+    <div class="cta-buttons">
+        <a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20UPS%20products." target="_blank" class="btn btn-whatsapp" style="font-size:1.1rem;padding:16px 36px;">&#128172; Chat on WhatsApp</a>
+        <a href="mailto:dean@talegent-ess.com" class="btn btn-primary" style="font-size:1.1rem;padding:16px 36px;">&#9993; Email: dean@talegent-ess.com</a>
+    </div>
+</section>
+
+<footer>
+    <p>&#169; 2026 Talegent Innovation Technology Co., Ltd. All rights reserved. | Vitality Series Sodium-ion UPS | <a href="mailto:dean@talegent-ess.com">dean@talegent-ess.com</a> | <a href="https://www.talegent-ess.com" target="_blank">www.talegent-ess.com</a></p>
+</footer>
+
+<!-- WhatsApp Floating Button -->
+<a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20UPS%20products." target="_blank" class="whatsapp-float">
+    &#128172;
+    <span class="tooltip">Chat with us!</span>
+</a>
+
+<script>
+function toggleMenu() {
+    document.getElementById('navLinks').classList.toggle('active');
+}
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('active');
+    });
+});
+function switchTab(tab) {
+    document.querySelectorAll('.product-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.product-table-wrap').forEach(t => t.style.display = 'none');
+    document.querySelector('.product-tab[onclick*="' + tab + '"]').classList.add('active');
+    document.getElementById('tab-' + tab).style.display = 'block';}
+</script>
+
+<script src="tracker-client.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- PRODUCTS -->
 <section class="product-line" id="products">
     <div class="container">
         <h2 class="section-title">Vitality Series Sodium-ion UPS</h2>
