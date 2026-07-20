@@ -5,7 +5,905 @@
 
 const TRACKER_CLIENT_JS = `// ============================================================ // Talegent Visitor Analytics Tracker - Client Side // Runs in browser - collects anonymized visitor data // Compliant with GDPR & China Personal Information Protection Law // ============================================================ (function() { 'use strict'; // Configuration const API_URL = 'https://talegent-tracker-api.tanyong2396.workers.dev/api/track'; const SITE_NAME = 'Talegent Sodium UPS'; const SITE_VERSION = '1.0'; const COOKIE_NAME = 'talegent_visitor'; const COOKIE_EXPIRY_DAYS = 365; // Session tracking const pageLoadTime = Date.now(); const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); // ============================================================ // Cookie management for anonymous visitor ID // ============================================================ function getVisitorId() { const cookies = document.cookie.split('; '); for (let c of cookies) { const [name, value] = c.split('='); if (name === COOKIE_NAME) return value; } // Generate new anonymous ID const newId = 'vis_' + Date.now() + '_' + Math.random().toString(36).substr(2, 12); const expires = new Date(Date.now() + COOKIE_EXPIRY_DAYS * 86400000).toUTCString(); document.cookie = COOKIE_NAME + '=' + newId + '; expires=' + expires + '; path=/; SameSite=Lax'; return newId; } // ============================================================ // Collect anonymized user information // ============================================================ function collectUserInfo() { var ua = navigator.userAgent; // Device type detection from UA (no storage of raw UA) var deviceType = 'Desktop'; if (/Mobile|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) { deviceType = 'Mobile'; } else if (/Tablet|iPad|PlayBook|Silk/i.test(ua)) { deviceType = 'Tablet'; } // OS detection (category only, no version) var os = 'Unknown'; if (ua.indexOf('Windows') !== -1) os = 'Windows'; else if (ua.indexOf('Mac OS') !== -1) os = 'macOS'; else if (ua.indexOf('Linux') !== -1) os = 'Linux'; else if (ua.indexOf('Android') !== -1) os = 'Android'; else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) os = 'iOS'; // Browser detection (category only) var browser = 'Unknown'; if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1) browser = 'Chrome'; else if (ua.indexOf('Firefox') !== -1) browser = 'Firefox'; else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) browser = 'Safari'; else if (ua.indexOf('Edg') !== -1) browser = 'Edge'; else if (ua.indexOf('MSIE') !== -1 || ua.indexOf('Trident') !== -1) browser = 'Internet Explorer'; return { visitor_id: getVisitorId(), session_id: sessionId, url: window.location.href, referrer: document.referrer || '(direct)', language: navigator.language || 'unknown', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown', screen_width: window.screen.width, screen_height: window.screen.height, device_type: deviceType, os: os, browser: browser, site_name: SITE_NAME, site_version: SITE_VERSION, }; } // ============================================================ // Send tracking data to Worker API // ============================================================ function sendTrackData(eventData) { var payload = { ...collectUserInfo(), ...eventData, time_on_page: Date.now() - pageLoadTime, }; // Use sendBeacon for reliability if (navigator.sendBeacon) { var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' }); navigator.sendBeacon(API_URL, blob); } else { fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true, }).catch(function() {}); } } // ============================================================ // Track page view // ============================================================ function trackPageView() { sendTrackData({ event_type: 'pageview', page_title: document.title, }); } // ============================================================ // Track clicks (anonymized) // ============================================================ function setupClickTracking() { document.addEventListener('click', function(e) { var target = e.target.closest('a, button, .btn, [onclick]'); if (!target) return; var href = target.href || ''; var text = (target.textContent || '').trim().substring(0, 100); var category = 'general'; var eventType = 'click'; if (href.indexOf('wa.me') !== -1 || href.indexOf('whatsapp') !== -1) { category = 'whatsapp'; eventType = 'whatsapp_click'; } else if (href.indexOf('mailto:') !== -1) { category = 'email'; eventType = 'email_click'; } else if (href.indexOf('#') === 0) { category = 'navigation'; eventType = 'nav_click'; } else if (target.tagName === 'BUTTON' || (target.className || '').indexOf('btn') !== -1) { category = 'button'; } sendTrackData({ event_type: eventType, category: category, element_text: text.substring(0, 50), href: href.substring(0, 200), }); }, true); } // ============================================================ // Track scroll depth (anonymized) // ============================================================ var maxScroll = 0; function setupScrollTracking() { var timer = null; window.addEventListener('scroll', function() { if (timer) clearTimeout(timer); timer = setTimeout(function() { var percent = Math.round( (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100 ); if (percent > maxScroll) { maxScroll = percent; if (percent === 25 || percent === 50 || percent === 75 || percent === 100) { sendTrackData({ event_type: 'scroll', category: 'engagement', scroll_depth: percent + '%', }); } } }, 500); }, { passive: true }); } // ============================================================ // Track time on page // ============================================================ function setupTimeTracking() { setTimeout(function() { sendTrackData({ event_type: 'time_on_page', category: 'engagement', label: '30s' }); }, 30000); setTimeout(function() { sendTrackData({ event_type: 'time_on_page', category: 'engagement', label: '60s' }); }, 60000); } // ============================================================ // Track page leave // ============================================================ function setupLeaveTracking() { window.addEventListener('beforeunload', function() { sendTrackData({ event_type: 'pageleave', category: 'engagement', duration: Date.now() - pageLoadTime, max_scroll: maxScroll + '%', }); }); } // ============================================================ // Initialize // ============================================================ function init() { if (document.readyState === 'complete') { trackPageView(); } else { window.addEventListener('load', trackPageView); } setupClickTracking(); setupScrollTracking(); setupTimeTracking(); setupLeaveTracking(); console.log('Talegent Analytics initialized ✓'); } init(); })();`;
 
-const INDEX_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Talegent® Sodium-ion UPS Solution</title><style> * { margin: 0; padding: 0; box-sizing: border-box; } html { scroll-behavior: smooth; } body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.6; } :root { --navy:#0A1F44; --blue:#1A73E8; --teal:#009688; --orange:#FF6F00; --green:#2E7D32; --red:#C62828; --purple:#6A1B9A; --light-bg:#F5F7FA; --card-bg:#EEF1F6; --dark:#1a1a2e; --gray:#666677; --whatsapp:#25D366; } .navbar { position:fixed; top:0; width:100%; background:rgba(10,31,68,0.95); backdrop-filter:blur(10px); z-index:1000; padding:0 2rem; display:flex; justify-content:space-between; align-items:center; height:70px; border-bottom:3px solid var(--blue); } .navbar .logo { color:white; font-size:1.4rem; font-weight:700; } .navbar .logo span { color:var(--blue); } .nav-links { display:flex; gap:2rem; list-style:none; } .nav-links a { color:rgba(255,255,255,0.85); text-decoration:none; font-size:0.95rem; font-weight:500; transition:color 0.3s; } .nav-links a:hover { color:var(--blue); } .hamburger { display:none; flex-direction:column; cursor:pointer; gap:5px; } .hamburger span { width:25px; height:3px; background:white; border-radius:2px; } .hero { background:linear-gradient(135deg,var(--navy) 0%,#0D2B5A 50%,#1A3A6A 100%); min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:100px 2rem 60px; position:relative; overflow:hidden; } .hero::before { content:''; position:absolute; top:0;left:0;right:0;bottom:0; background:radial-gradient(circle at 20% 50%,rgba(26,115,232,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 50%,rgba(255,111,0,0.1) 0%,transparent 50%); } .hero * { position:relative; z-index:1; } .hero h1 { font-size:3.2rem; color:white; margin-bottom:0.5rem; font-weight:800; } .hero h1 span { color:var(--blue); } .hero .tagline { font-size:1.3rem; color:#88CCFF; margin-bottom:2.5rem; font-weight:300; } .hero-cta { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; } .btn { display:inline-block; padding:14px 32px; border-radius:8px; text-decoration:none; font-weight:600; font-size:1rem; transition:all 0.3s; cursor:pointer; } .btn-primary { background:var(--blue); color:white; } .btn-primary:hover { background:#1557B0; transform:translateY(-2px); } .btn-whatsapp { background:var(--whatsapp); color:white; } .btn-whatsapp:hover { background:#1DA851; transform:translateY(-2px); } .btn-outline { border:2px solid rgba(255,255,255,0.3); color:white; } .btn-outline:hover { border-color:white; transform:translateY(-2px); } .hero-features { display:flex; gap:2rem; margin-top:3rem; flex-wrap:wrap; justify-content:center; } .hero-feature { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.2rem 2rem; min-width:180px; backdrop-filter:blur(5px); } .hero-feature .icon { font-size:1.8rem; } .hero-feature .value { color:white; font-size:1.1rem; font-weight:700; margin-top:0.3rem; } .hero-feature .label { color:#88AACC; font-size:0.85rem; } section { padding:5rem 2rem; } .section-title { text-align:center; font-size:2.2rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; } .section-subtitle { text-align:center; color:var(--gray); font-size:1.1rem; margin-bottom:3rem; max-width:700px; margin-left:auto; margin-right:auto; } .container { max-width:1200px; margin:0 auto; } .pain-points { background:var(--light-bg); } .pain-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:1000px; margin:0 auto; } .pain-item { display:flex; align-items:center; gap:1rem; background:white; padding:1rem 1.5rem; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); } .pain-item .arrow { color:var(--blue); font-size:1.2rem; font-weight:700; margin:0 0.5rem; } .pain-item .problem { color:var(--red); font-weight:600; font-size:0.9rem; flex:1; } .pain-item .solution { color:var(--green); font-weight:600; font-size:0.9rem; flex:1; } .advantages-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; } .advantage-card { background:var(--card-bg); border-radius:12px; padding:1.5rem; border-top:4px solid var(--blue); transition:transform 0.3s,box-shadow 0.3s; } .advantage-card:hover { transform:translateY(-5px); box-shadow:0 10px 30px rgba(0,0,0,0.1); } .advantage-card .icon { font-size:2rem; margin-bottom:0.5rem; } .advantage-card h3 { font-size:1.1rem; margin-bottom:0.5rem; } .advantage-card ul { list-style:none; margin-top:0.5rem; } .advantage-card ul li { color:var(--gray); font-size:0.85rem; padding:0.2rem 0; padding-left:1.2rem; position:relative; } .advantage-card ul li::before { content:'\u2022'; position:absolute; left:0; color:var(--blue); font-weight:bold; } .comparison { background:var(--light-bg); } .table-wrapper { overflow-x:auto; } table.comparison-table { width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 15px rgba(0,0,0,0.08); } table.comparison-table th { background:var(--navy); color:white; padding:1rem; font-size:0.95rem; text-align:center; } table.comparison-table td { padding:0.85rem 1rem; text-align:center; font-size:0.9rem; border-bottom:1px solid #eee; } table.comparison-table tr:nth-child(even) td { background:#FAFBFC; } table.comparison-table .highlight { background:#E3F2FD !important; font-weight:700; color:var(--blue); } table.comparison-table td:first-child { text-align:left; font-weight:600; color:var(--dark); } .charts-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:2rem; } .chart-box { background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.06); text-align:center; } .chart-box h4 { font-size:1rem; color:var(--navy); margin-bottom:1rem; } .bar-chart { display:flex; align-items:flex-end; justify-content:center; gap:1.5rem; height:180px; padding-top:1rem; } .bar-group { display:flex; flex-direction:column; align-items:center; gap:0.3rem; } .bar { width:50px; border-radius:6px 6px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:5px; font-size:0.75rem; font-weight:700; color:white; min-height:20px; } .bar-label { font-size:0.75rem; color:var(--gray); text-align:center; } .bar-gray { background:#9E9E9E; } .bar-blue { background:var(--blue); } .bar-orange { background:var(--orange); } .tco-section { background:var(--navy); color:white; } .tco-section .section-title { color:white; } .tco-section .section-subtitle { color:#88AACC; } .tco-grid { display:grid; grid-template-columns:2fr 1fr; gap:2rem; align-items:start; } .tco-chart-box { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.5rem; } .tco-chart-box h4 { color:white; margin-bottom:1rem; text-align:center; } .tco-breakdown { background:rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; border:1px solid rgba(255,255,255,0.1); } .tco-breakdown h4 { color:white; margin-bottom:1rem; } .tco-breakdown p { color:#AABBCC; font-size:0.85rem; margin-bottom:0.3rem; } .tco-breakdown .highlight-text { color:var(--orange); font-weight:700; font-size:1.1rem; margin-top:0.5rem; } .roi-metrics { display:grid; grid-template-columns:repeat(5,1fr); gap:1rem; margin-top:2rem; } .roi-item { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:1rem; text-align:center; } .roi-item .value { font-size:1.5rem; font-weight:800; } .roi-item .label { font-size:0.8rem; color:#88AACC; margin-top:0.3rem; } .apps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; } .app-card { background:var(--card-bg); border-radius:12px; padding:1.5rem; border-top:4px solid var(--teal); } .app-card .icon { font-size:1.8rem; margin-bottom:0.5rem; } .app-card h3 { font-size:1.1rem; margin-bottom:0.5rem; } .app-card ul { list-style:none; } .app-card ul li { color:var(--gray); font-size:0.85rem; padding:0.2rem 0; padding-left:1.2rem; position:relative; } .app-card ul li::before { content:'\u2022'; position:absolute; left:0; color:var(--teal); font-weight:bold; } .specs-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; } .specs-table { width:100%; border-collapse:collapse; } .specs-table td { padding:0.6rem 1rem; border-bottom:1px solid #eee; font-size:0.9rem; } .specs-table td:first-child { font-weight:600; color:var(--navy); width:40%; } .specs-table td:last-child { color:var(--gray); } .specs-table tr:nth-child(even) td { background:#FAFBFC; } .integration-list { background:var(--card-bg); border-radius:12px; padding:1.5rem; } .integration-list h3 { margin-bottom:1rem; color:var(--navy); } .integration-list ul { list-style:none; } .integration-list ul li { padding:0.4rem 0; padding-left:1.8rem; position:relative; color:var(--gray); font-size:0.9rem; } .integration-list ul li::before { content:'\u2705'; position:absolute; left:0; } .cta-section { background:linear-gradient(135deg,var(--navy),#0D2B5A); text-align:center; padding:4rem 2rem; } .cta-section h2 { color:white; font-size:2.2rem; margin-bottom:0.5rem; } .cta-section p { color:#88AACC; font-size:1.1rem; margin-bottom:2rem; } .cta-buttons { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; } .cta-buttons .btn { min-width:200px; } footer { background:#06122B; color:#667788; text-align:center; padding:2rem; font-size:0.85rem; } footer a { color:var(--blue); text-decoration:none; } .whatsapp-float { position:fixed; bottom:20px; right:20px; z-index:999; background:var(--whatsapp); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; text-decoration:none; box-shadow:0 4px 15px rgba(37,211,102,0.4); transition:all 0.3s; } .whatsapp-float:hover { transform:scale(1.1); box-shadow:0 6px 20px rgba(37,211,102,0.6); } .whatsapp-float .tooltip { position:absolute; right:70px; background:white; color:var(--dark); padding:8px 16px; border-radius:8px; font-size:0.85rem; font-weight:500; white-space:nowrap; box-shadow:0 2px 10px rgba(0,0,0,0.1); opacity:0; pointer-events:none; transition:opacity 0.3s; } .whatsapp-float:hover .tooltip { opacity:1; } /* ===== COMPANY PROFILE ===== */ .company { background:var(--light-bg); } .company-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; } .company-text p { color:var(--gray); font-size:0.95rem; margin-bottom:1rem; line-height:1.8; } .company-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; } .company-stat { background:white; border-radius:10px; padding:1.2rem; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); } .company-stat .icon { font-size:1.8rem; } .company-stat h4 { font-size:0.95rem; color:var(--navy); margin:0.3rem 0; } .company-stat p { font-size:0.8rem; color:var(--gray); margin:0; } .company-values { display:flex; gap:1rem; margin-top:1.5rem; flex-wrap:wrap; } .company-values span { background:var(--navy); color:white; padding:6px 16px; border-radius:20px; font-size:0.85rem; font-weight:600; } .hero .hero-badge { display:inline-block; background:rgba(255,179,0,0.15); border:1px solid rgba(255,179,0,0.3); color:#FFB300; padding:6px 20px; border-radius:20px; font-size:0.85rem; font-weight:600; letter-spacing:1px; margin-bottom:1rem; } .hero .hero-sub { font-size:1.6rem; color:#88CCFF; font-weight:300; margin-bottom:0.5rem; } .hero .hero-desc { font-size:1rem; color:#AABBCC; max-width:800px; margin:0.5rem auto 1.5rem; line-height:1.8; } .hero .hero-tagline { font-size:1.1rem; color:#FFB300; font-weight:600; margin-bottom:1.5rem; } /* ===== PRODUCT LINE ===== */ .product-line { background:white; } .product-intro { text-align:center; max-width:800px; margin:0 auto 2.5rem; color:var(--gray); font-size:0.95rem; line-height:1.8; } .product-tabs { display:flex; gap:0.5rem; justify-content:center; margin-bottom:2rem; flex-wrap:wrap; } .product-tab { padding:10px 24px; border-radius:8px; border:2px solid #ddd; background:white; cursor:pointer; font-weight:600; font-size:0.9rem; transition:all 0.3s; color:var(--gray); } .product-tab:hover { border-color:var(--blue); color:var(--blue); } .product-tab.active { background:var(--blue); color:white; border-color:var(--blue); } .product-table-wrap { overflow-x:auto; margin-bottom:2rem; } .product-table { width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 15px rgba(0,0,0,0.08); } .product-table th { background:var(--navy); color:white; padding:0.8rem 1rem; font-size:0.85rem; text-align:center; } .product-table td { padding:0.7rem 1rem; text-align:center; font-size:0.85rem; border-bottom:1px solid #eee; } .product-table tr:nth-child(even) td { background:#FAFBFC; } .product-table td:first-child { text-align:left; font-weight:600; color:var(--dark); } /* ===== CERTIFICATIONS ===== */ .certifications { background:var(--light-bg); } .cert-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; } .cert-card { background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.05); } .cert-card h4 { font-size:1rem; color:var(--navy); margin-bottom:0.8rem; } .cert-card ul { list-style:none; } .cert-card ul li { font-size:0.85rem; color:var(--gray); padding:0.3rem 0; padding-left:1.2rem; position:relative; } .cert-card ul li::before { content:'\u2713'; position:absolute; left:0; color:var(--green); font-weight:bold; } .env-table-wrap { overflow-x:auto; margin-top:2rem; } .env-table { width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 15px rgba(0,0,0,0.08); } .env-table th { background:var(--navy); color:white; padding:0.8rem 1rem; font-size:0.85rem; text-align:center; } .env-table td { padding:0.7rem 1rem; font-size:0.85rem; border-bottom:1px solid #eee; } .env-table td:first-child { font-weight:600; color:var(--dark); } .env-table tr:nth-child(even) td { background:#FAFBFC; } /* ===== TECHNICAL SPECS ===== */ .tech-specs { background:white; } .specs-section { margin-bottom:2.5rem; } .specs-section h3 { font-size:1.3rem; color:var(--navy); margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:3px solid var(--blue); display:inline-block; } .specs-table { width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 15px rgba(0,0,0,0.08); } .specs-table th { background:var(--navy); color:white; padding:0.8rem 1rem; font-size:0.85rem; text-align:center; } .specs-table td { padding:0.7rem 1rem; font-size:0.85rem; border-bottom:1px solid #eee; } .specs-table td:first-child { font-weight:600; color:var(--dark); } .specs-table tr:nth-child(even) td { background:#FAFBFC; } .specs-table .highlight-row td { background:#FFF3E0 !important; font-weight:600; } /* ===== PARTNER SECTION ===== */ .partner { background:linear-gradient(135deg,var(--navy),#0D2B5A); color:white; text-align:center; } .partner .section-title { color:white; } .partner .section-subtitle { color:#88AACC; } .partner-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.5rem; max-width:800px; margin:0 auto 2.5rem; } .partner-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.5rem; text-align:left; } .partner-card .icon { font-size:1.5rem; margin-bottom:0.5rem; } .partner-card h4 { color:white; font-size:1rem; margin-bottom:0.3rem; } .partner-card p { color:#AABBCC; font-size:0.85rem; } .partner-benefits { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; max-width:900px; margin:0 auto 2rem; } .partner-benefit { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:1rem; } .partner-benefit .icon { font-size:1.3rem; } .partner-benefit p { color:#AABBCC; font-size:0.85rem; margin-top:0.3rem; } @media (max-width:1024px) { .advantages-grid,.apps-grid { grid-template-columns:repeat(2,1fr); } .charts-grid { grid-template-columns:repeat(2,1fr); } .roi-metrics { grid-template-columns:repeat(3,1fr); } .tco-grid { grid-template-columns:1fr; } .company-grid { grid-template-columns:1fr; } .cert-grid { grid-template-columns:repeat(2,1fr); } .partner-grid { grid-template-columns:1fr; } .partner-benefits { grid-template-columns:repeat(2,1fr); } } @media (max-width:768px) { .nav-links { display:none; position:absolute; top:70px; left:0; right:0; background:var(--navy); flex-direction:column; padding:1rem 2rem; gap:1rem; } .nav-links.active { display:flex; } .hamburger { display:flex; } .hero h1 { font-size:2rem; } .hero .hero-sub { font-size:1.2rem; } .hero .hero-desc { font-size:0.9rem; } .hero .tagline { font-size:1rem; } .hero-features { gap:1rem; } .hero-feature { min-width:130px; padding:0.8rem 1rem; } .pain-grid { grid-template-columns:1fr; } .advantages-grid,.apps-grid { grid-template-columns:1fr; } .charts-grid { grid-template-columns:1fr; } .specs-grid { grid-template-columns:1fr; } .roi-metrics { grid-template-columns:repeat(2,1fr); } .company-stats { grid-template-columns:1fr; } .cert-grid { grid-template-columns:1fr; } .partner-benefits { grid-template-columns:1fr; } section { padding:3rem 1rem; } .section-title { font-size:1.6rem; } } @media (max-width:480px) { .hero h1 { font-size:1.5rem; } .hero-cta { flex-direction:column; align-items:center; } .btn { width:100%; text-align:center; } .roi-metrics { grid-template-columns:1fr; } } </style></head><body><nav class="navbar"><div class="logo">Talegent<span>&#174;</span></div><ul class="nav-links" id="navLinks"><li><a href="#company">About</a></li><li><a href="#products">Products</a></li><li><a href="#certifications">Certifications</a></li><li><a href="#specs">Specs</a></li><li><a href="#partner">Partner</a></li><li><a href="#contact">Contact</a></li></ul><div class="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav><section class="hero" id="home"><div class="hero-badge">&#9889; THE WORLD'S 1st SODIUM-ION UPS</div><h1>Talegent<span>&#174;</span> Vitality Series</h1><p class="hero-sub">1-10kVA Sodium-ion UPS Solution</p><p class="hero-desc"> True Double Conversion On-Line UPS &mdash; Output Power Factor 1.0<br> Next-Gen Bridgeless PFC Technology &bull; Line Efficiency up to 96% &bull; ECO Mode up to 98.5%<br> Fast-charge < 1 hour &bull; 3,000 Cycles Life &bull; -20&#176;C Operation </p><p class="hero-tagline">&#127775; Shenzhen Talegent Innovation Technology Co., Ltd &nbsp;|&nbsp; www.talegent-ess.com</p><div class="hero-cta"><a href="#products" class="btn btn-primary">View Products</a><a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20Vitality%20Series%20UPS." target="_blank" class="btn btn-whatsapp">&#128172; Chat on WhatsApp</a><a href="mailto:dean@talegent-ess.com" class="btn btn-outline">&#9993; Email Us</a></div><div class="hero-features"><div class="hero-feature"><div class="icon">&#9889;</div><div class="value">Output PF 1.0</div><div class="label">Full rated power</div></div><div class="hero-feature"><div class="icon">&#128200;</div><div class="value">Up to 96%</div><div class="label">Line efficiency</div></div><div class="hero-feature"><div class="icon">&#9201;</div><div class="value">< 1 hour</div><div class="label">Fast charge</div></div><div class="hero-feature"><div class="icon">&#128260;</div><div class="value">3,000 Cycles</div><div class="label">@ 80% DoD</div></div><div class="hero-feature"><div class="icon">&#10052;&#65039;</div><div class="value">-20&#176;C</div><div class="label">Cold operation</div></div></div></section><!-- ===== COMPANY PROFILE ===== --><section class="company" id="company"><div class="container"><h2 class="section-title">About Talegent</h2><p class="section-subtitle">Shenzhen Talegent Innovation Technology Co., Ltd</p><div class="company-grid"><div class="company-text"><p>Shenzhen Talegent Innovation Technology Co., Ltd is a high-tech enterprise specializing in the research, development and industrialization of sodium-ion battery technology. We are dedicated to providing safe, reliable and environmentally friendly energy storage solutions for global customers.</p><p>Our team brings together battery technology experts from leading research institutions worldwide. We hold core intellectual property rights in sodium-ion battery materials, cell design, BMS management systems and system integration. The Vitality series sodium-ion UPS products have passed multiple international certifications and are widely used in data centers, communication base stations, industrial control, medical equipment and outdoor energy storage.</p><div class="company-values"><span>Innovation</span><span>Reliability</span><span>Green</span><span>Win-Win</span></div></div><div class="company-stats"><div class="company-stat"><div class="icon">&#128300;</div><h4>Technology Leadership</h4><p>Proprietary sodium-ion battery core technology with multiple invention patents</p></div><div class="company-stat"><div class="icon">&#127981;</div><h4>Smart Manufacturing</h4><p>Modern production base with strict ISO quality management system</p></div><div class="company-stat"><div class="icon">&#127758;</div><h4>Global Service</h4><p>Sales network covering 30+ countries across Asia Pacific, Europe and North America</p></div><div class="company-stat"><div class="icon">&#127795;</div><h4>Green & Sustainable</h4><p>Sodium abundance 2.3% in earth's crust, recyclable materials, low carbon throughout lifecycle</p></div></div></div></div></section><section id="advantages"><div class="container"><h2 class="section-title">Why Sodium-ion is the Ideal UPS Battery</h2><p class="section-subtitle">6 key advantages that make sodium-ion the perfect fit for UPS applications</p><div class="advantages-grid"><div class="advantage-card" style="border-top-color:var(--blue);"><div class="icon">&#128274;</div><h3 style="color:var(--blue);">Ultimate Safety for 24/7 Operation</h3><ul><li>No thermal runaway &#8212; zero fire risk</li><li>Passes nail penetration & overcharge tests</li><li>Safe for indoor & data center use</li></ul></div><div class="advantage-card" style="border-top-color:var(--teal);"><div class="icon">&#10052;&#65039;</div><h3 style="color:var(--teal);">No HVAC Required for Cold Sites</h3><ul><li>Full performance at -20&#176;C to 60&#176;C</li><li>Eliminates need for battery heating systems</li><li>Saves 15-20% on facility energy costs</li></ul></div><div class="advantage-card" style="border-top-color:var(--orange);"><div class="icon">&#9889;</div><h3 style="color:var(--orange);">Always Ready for Next Outage</h3><ul><li>1C fast charge: 30min to 80% SOC</li><li>2C discharge: handles high-power loads</li><li>No memory effect &#8212; partial charge OK</li></ul></div><div class="advantage-card" style="border-top-color:var(--green);"><div class="icon">&#128176;</div><h3 style="color:var(--green);">3x Lower Total Cost of Ownership</h3><ul><li>3,000+ cycles vs 500 for lead-acid</li><li>10+ year calendar life</li><li>30-40% cheaper than LFP per kWh</li></ul></div><div class="advantage-card" style="border-top-color:var(--purple);"><div class="icon">&#128202;</div><h3 style="color:var(--purple);">Smart BMS for UPS Integration</h3><ul><li>Real-time SOC & SOH monitoring</li><li>RS485/CAN for UPS communication</li><li>Predictive maintenance alerts</li></ul></div><div class="advantage-card" style="border-top-color:#009688;"><div class="icon">&#127793;</div><h3 style="color:#009688;">Sustainable & Compliant</h3><ul><li>No lead, lithium, cobalt, or nickel</li><li>100% recyclable at end of life</li><li>RoHS, REACH, UN38.3 certified</li></ul></div></div></div></section><!-- ===== PRODUCT LINE ===== --><section class="product-line" id="products"><div class="container"><h2 class="section-title">Vitality Series Sodium-ion UPS</h2><p class="section-subtitle">The world's first sodium-ion battery powered on-line UPS</p><p class="product-intro">The Vitality series is the world's first sodium-ion battery powered on-line UPS. Featuring true double conversion technology, output power factor 1.0, and efficiency up to 96%+, it perfectly replaces traditional lead-acid and lithium battery UPS systems.</p><div class="product-tabs"><span class="product-tab active" onclick="switchTab('tower')">Tower Series</span><span class="product-tab" onclick="switchTab('rack')">Rack/Tower Series</span><span class="product-tab" onclick="switchTab('ebm')">External Battery Modules</span></div><!-- Tower Series --><div class="product-table-wrap" id="tab-tower"><table class="product-table"><thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead><tbody><tr><td>1KS</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>275x165x220</td><td>7.8kg</td></tr><tr><td>2KS</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>390x190x320</td><td>14.3kg</td></tr><tr><td>3KS</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>390x190x320</td><td>16.3kg</td></tr><tr><td>6KS</td><td>6kVA/6kW</td><td>208-240V</td><td>1228.8Wh</td><td>450x190x700</td><td>31.4kg</td></tr><tr><td>10KS</td><td>10kVA/10kW</td><td>208-240V</td><td>1536.0Wh</td><td>450x190x700</td><td>35.8kg</td></tr></tbody></table></div><!-- Rack/Tower Series --><div class="product-table-wrap" id="tab-rack" style="display:none;"><table class="product-table"><thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead><tbody><tr><td>1KS-RT</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>440x355x85</td><td>11.4kg</td></tr><tr><td>2KS-RT</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>440x485x85</td><td>16.35kg</td></tr><tr><td>3KS-RT</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>440x560x85</td><td>19.85kg</td></tr><tr><td>6K-RT</td><td>6kVA/6kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.15kg</td></tr><tr><td>10K-RT</td><td>10kVA/10kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.35kg</td></tr></tbody></table></div><!-- External Battery Modules --><div class="product-table-wrap" id="tab-ebm" style="display:none;"><table class="product-table"><thead><tr><th>Model</th><th>Voltage</th><th>Energy</th><th>Dimension (mm)</th><th>Weight</th><th>Cells</th></tr></thead><tbody><tr><td>EBP1K-RT</td><td>36V</td><td>460.8Wh</td><td>440x485x85</td><td>11.85kg</td><td>NA-481840W x4</td></tr><tr><td>EBP2K-RT</td><td>72V</td><td>921.6Wh</td><td>440x565x85</td><td>16.85kg</td><td>NA-481840W x6</td></tr><tr><td>EBP3K-RT</td><td>96V</td><td>1228.8Wh</td><td>440x715x85</td><td>21.10kg</td><td>NA-481840W x8</td></tr><tr><td>BX192064Na-RT</td><td>192V</td><td>1228.8Wh</td><td>440x680x85</td><td>22.5kg</td><td>NA-481840W x4</td></tr><tr><td>BX240064Na-RT</td><td>240V</td><td>1536.0Wh</td><td>440x680x85</td><td>25.5kg</td><td>NA-481840W x5</td></tr></tbody></table></div></div></section><section class="comparison" id="comparison"><div class="container"><h2 class="section-title">UPS Battery Performance Comparison</h2><p class="section-subtitle">Sodium-ion vs. Lead-acid vs. LFP &#8212; measured by UPS-critical metrics</p><div class="charts-grid"><div class="chart-box"><h4>Cycle Life (cycles)</h4><div class="bar-chart"><div class="bar-group"><div class="bar bar-gray" style="height:30px;">500</div><div class="bar-label">Lead-acid</div></div><div class="bar-group"><div class="bar bar-blue" style="height:160px;">3,000</div><div class="bar-label">LFP</div></div><div class="bar-group"><div class="bar bar-orange" style="height:160px;">3,000+</div><div class="bar-label">Sodium-ion</div></div></div></div><div class="chart-box"><h4>Cost per kWh (&#165;)</h4><div class="bar-chart"><div class="bar-group"><div class="bar bar-gray" style="height:140px;">0.50</div><div class="bar-label">Lead-acid</div></div><div class="bar-group"><div class="bar bar-blue" style="height:170px;">0.60</div><div class="bar-label">LFP</div></div><div class="bar-group"><div class="bar bar-orange" style="height:100px;">0.35</div><div class="bar-label">Sodium-ion</div></div></div></div><div class="chart-box"><h4>Operating Temp Range (&#176;C)</h4><div class="bar-chart"><div class="bar-group"><div class="bar bar-gray" style="height:110px;">50</div><div class="bar-label">Lead-acid</div></div><div class="bar-group"><div class="bar bar-blue" style="height:100px;">45</div><div class="bar-label">LFP</div></div><div class="bar-group"><div class="bar bar-orange" style="height:175px;">80</div><div class="bar-label">Sodium-ion</div></div></div></div></div><div class="table-wrapper"><table class="comparison-table"><thead><tr><th>UPS-Critical Feature</th><th>Lead-acid</th><th>LFP</th><th>Sodium-ion &#9733;</th></tr></thead><tbody><tr><td>Thermal Runaway Risk</td><td>Low</td><td>Moderate-High</td><td class="highlight">None &#10003;</td></tr><tr><td>Cold Temp (0&#176;C)</td><td>50% capacity</td><td>70% capacity</td><td class="highlight">90% capacity &#10003;</td></tr><tr><td>Recharge Time to 80%</td><td>8-10 hours</td><td>1-2 hours</td><td class="highlight">30 min &#10003;</td></tr><tr><td>Cycle Life (80% DoD)</td><td>300-500</td><td>2,000-4,000</td><td class="highlight">3,000+ &#10003;</td></tr><tr><td>Calendar Life</td><td>3-5 years</td><td>8-10 years</td><td class="highlight">10-15 years &#10003;</td></tr><tr><td>Maintenance</td><td>Regular watering</td><td>None</td><td class="highlight">None &#10003;</td></tr><tr><td>Recyclability</td><td>Complex</td><td>Moderate</td><td class="highlight">100% &#10003;</td></tr></tbody></table></div></div></section><!-- ===== CERTIFICATIONS ===== --><section class="certifications" id="certifications"><div class="container"><h2 class="section-title">Quality Assurance</h2><p class="section-subtitle">The Vitality series has passed multiple international authoritative certifications for global market access</p><div class="cert-grid"><div class="cert-card"><h4>&#128737;&#65039; Safety Certifications</h4><ul><li>EN/IEC 62040-1 (UPS Safety)</li><li>IEC 62619 (Battery Safety)</li><li>UN 38.3 (Transport)</li><li>MSDS</li></ul></div><div class="cert-card"><h4>&#9889; Performance Standards</h4><ul><li>EN/IEC 62040-3 (UPS Performance)</li><li>EN/IEC 61000 (EMC)</li><li>EN62040-2 C2 (CE)</li></ul></div><div class="cert-card"><h4>&#127793; Environmental Compliance</h4><ul><li>RoHS (Hazardous Substances)</li><li>REACH (Chemical Registration)</li><li>WEEE (Waste Electronics)</li></ul></div><div class="cert-card"><h4>&#128202; Quality Systems</h4><ul><li>ISO 9001 (Quality Management)</li><li>ISO 14001 (Environmental Management)</li><li>ISO 45001 (Occupational Health)</li></ul></div></div><h3 style="text-align:center;color:var(--navy);margin:2rem 0 1rem;font-size:1.3rem;">Environmental Parameters</h3><div class="env-table-wrap"><table class="env-table"><thead><tr><th>Parameter</th><th>Specification</th></tr></thead><tbody><tr><td>Operating Temperature</td><td>-20&#176;C to 40&#176;C</td></tr><tr><td>Storage Temperature</td><td>-20&#176;C to 50&#176;C</td></tr><tr><td>Relative Humidity</td><td>0-95% (non-condensing)</td></tr><tr><td>Noise (1-3KS)</td><td><50dB @ 1 meter</td></tr><tr><td>Noise (6KS)</td><td><56dB @ 1 meter</td></tr><tr><td>Noise (10KS)</td><td><58dB @ 1 meter</td></tr><tr><td>Altitude</td><td>Up to 1000m without derating</td></tr></tbody></table></div></div></section><section class="tco-section" id="tco"><div class="container"><h2 class="section-title">Total Cost of Ownership Analysis</h2><p class="section-subtitle">Why sodium-ion saves you 50%+ over 10 years compared to lead-acid</p><div class="tco-grid"><div class="tco-chart-box"><h4>10-Year Cumulative Cost Comparison (Indexed)</h4><svg viewBox="0 0 500 200" style="width:100%;height:180px;"><line x1="50" y1="180" x2="480" y2="180" stroke="#334466" stroke-width="1"/><line x1="50" y1="20" x2="50" y2="180" stroke="#334466" stroke-width="1"/><text x="55" y="30" fill="#88AACC" font-size="10">400</text><text x="55" y="80" fill="#88AACC" font-size="10">300</text><text x="55" y="130" fill="#88AACC" font-size="10">200</text><text x="55" y="175" fill="#88AACC" font-size="10">100</text><!-- Lead-acid line (gray) --><polyline points="50,130 95,130 140,80 185,80 230,80 275,30 320,30 365,30 410,20 455,20" fill="none" stroke="#9E9E9E" stroke-width="3" stroke-linejoin="round"/><!-- Sodium-ion line (orange) --><polyline points="50,105 95,105 140,105 185,105 230,105 275,105 320,105 365,105 410,105 455,105" fill="none" stroke="#FF6F00" stroke-width="3" stroke-linejoin="round"/><!-- Dots --><circle cx="50" cy="130" r="4" fill="#9E9E9E"/><circle cx="140" cy="80" r="4" fill="#9E9E9E"/><circle cx="275" cy="30" r="4" fill="#9E9E9E"/><circle cx="455" cy="20" r="4" fill="#9E9E9E"/><circle cx="50" cy="105" r="4" fill="#FF6F00"/><circle cx="140" cy="105" r="4" fill="#FF6F00"/><circle cx="275" cy="105" r="4" fill="#FF6F00"/><circle cx="455" cy="105" r="4" fill="#FF6F00"/><text x="50" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y1</text><text x="95" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y2</text><text x="140" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y3</text><text x="185" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y4</text><text x="230" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y5</text><text x="275" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y6</text><text x="320" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y7</text><text x="365" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y8</text><text x="410" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y9</text><text x="455" y="195" fill="#88AACC" font-size="8" text-anchor="middle">Y10</text></svg><div class="tco-legend"><div class="tco-legend-item"><div class="tco-legend-dot" style="background:#9E9E9E;"></div>Lead-acid</div><div class="tco-legend-item"><div class="tco-legend-dot" style="background:#FF6F00;"></div>Sodium-ion</div></div></div><div class="tco-breakdown"><h4>&#128176; 10-Year Cost Comparison</h4><p><strong style="color:#9E9E9E;">Lead-acid (500 cycles):</strong></p><p>&#8226; Replace every 2-3 years</p><p>&#8226; 3-4 replacements needed</p><p>&#8226; Total: 3-4x initial cost</p><p style="margin-top:0.8rem;"><strong style="color:#FF6F00;">Sodium-ion (3,000+ cycles):</strong></p><p>&#8226; One-time installation</p><p>&#8226; No replacement for 10+ years</p><p>&#8226; Total: 1x initial cost</p><p class="highlight-text">&#128271; Savings: 50-60% over 10 years</p></div></div><div class="roi-metrics"><div class="roi-item"><div class="value" style="color:var(--blue);">50-60%</div><div class="label">10-Year Cost Savings<br>vs. Lead-acid</div></div><div class="roi-item"><div class="value" style="color:var(--teal);">< 2 Years</div><div class="label">Payback Period<br>vs. LFP batteries</div></div><div class="roi-item"><div class="value" style="color:var(--orange);">3,000+</div><div class="label">Cycle Life<br>@ 80% DoD</div></div><div class="roi-item"><div class="value" style="color:var(--green);">10+ Years</div><div class="label">Service Life<br>No replacement needed</div></div><div class="roi-item"><div class="value" style="color:var(--purple);">30-40%</div><div class="label">Cost Reduction<br>vs. LFP per kWh</div></div></div></div></section><section id="applications"><div class="container"><h2 class="section-title">UPS Application Scenarios</h2><p class="section-subtitle">Where sodium-ion delivers the most value for UPS backup power</p><div class="apps-grid"><div class="app-card" style="border-top-color:var(--blue);"><div class="icon">&#127970;</div><h3 style="color:var(--blue);">Data Center UPS</h3><ul><li>24/7 critical load protection</li><li>Zero fire risk for server rooms</li><li>Space-efficient, no HVAC needed</li><li>Fast recharge between outages</li></ul></div><div class="app-card" style="border-top-color:var(--teal);"><div class="icon">&#128241;</div><h3 style="color:var(--teal);">Telecom Base Station UPS</h3><ul><li>Remote sites with extreme temps</li><li>-20&#176;C to 60&#176;C operation</li><li>Low maintenance for rural areas</li><li>10+ year service life</li></ul></div><div class="app-card" style="border-top-color:var(--orange);"><div class="icon">&#127997;</div><h3 style="color:var(--orange);">Industrial UPS</h3><ul><li>Factory automation backup</li><li>High-temperature workshops</li><li>Heavy load support (2C discharge)</li><li>Reliable for critical processes</li></ul></div><div class="app-card" style="border-top-color:var(--red);"><div class="icon">&#128657;</div><h3 style="color:var(--red);">Medical Facility UPS</h3><ul><li>Life-critical equipment backup</li><li>Zero fire risk compliance</li><li>Silent, vibration-free operation</li><li>Instant power switching</li></ul></div><div class="app-card" style="border-top-color:var(--green);"><div class="icon">&#127968;</div><h3 style="color:var(--green);">Home & Office UPS</h3><ul><li>Home office backup power</li><li>Solar + storage integration</li><li>Compact, wall-mountable design</li><li>Cost-effective solution</li></ul></div><div class="app-card" style="border-top-color:var(--purple);"><div class="icon">&#127796;</div><h3 style="color:var(--purple);">Off-Grid & Remote UPS</h3><ul><li>Remote monitoring stations</li><li>Rural electrification backup</li><li>Microgrid energy storage</li><li>No regular maintenance needed</li></ul></div></div></div></section><!-- ===== TECHNICAL SPECIFICATIONS ===== --><section class="tech-specs" id="specs"><div class="container"><h2 class="section-title">Technical Specifications</h2><p class="section-subtitle">Vitality Series Detailed Specifications</p><!-- Input Specs --><div class="specs-section"><h3>Input Specifications</h3><table class="specs-table"><thead><tr><th>Parameter</th><th>1-3KS</th><th>6-10KS</th></tr></thead><tbody><tr><td>Nominal Voltage</td><td>208/220/230/240VAC</td><td>208/220/230/240VAC</td></tr><tr><td>Voltage Range</td><td>100-300VAC</td><td>110-300VAC</td></tr><tr><td>Frequency</td><td>40-70Hz</td><td>40-70Hz</td></tr><tr><td>Power Factor</td><td>>0.99</td><td>>0.99</td></tr><tr><td>THDi</td><td><4% (linear load)</td><td><3% (linear load)</td></tr></tbody></table></div><!-- Output Specs --><div class="specs-section"><h3>Output Specifications</h3><table class="specs-table"><thead><tr><th>Parameter</th><th>Specification</th></tr></thead><tbody><tr><td>Nominal Voltage</td><td>208/220/230/240VAC</td></tr><tr><td>Voltage Regulation</td><td>+/-1%</td></tr><tr><td>Frequency</td><td>50/60Hz +/-0.1%</td></tr><tr><td>Waveform</td><td>Pure Sine Wave</td></tr><tr><td>Power Factor</td><td>1.0</td></tr><tr><td>Crest Ratio</td><td>3:1</td></tr><tr><td>THDu</td><td><3% (linear load)</td></tr><tr><td>Transfer Time</td><td>0ms (line to battery)</td></tr></tbody></table></div><!-- Efficiency --><div class="specs-section"><h3>Efficiency</h3><table class="specs-table"><thead><tr><th>Model</th><th>1KS</th><th>2KS</th><th>3KS</th><th>6KS</th><th>10KS</th></tr></thead><tbody><tr><td>Line Mode</td><td>>=93%</td><td>>=93%</td><td>>=94.5%</td><td>>=95%</td><td class="highlight-row">>=96%</td></tr><tr><td>ECO Mode</td><td>>=97%</td><td>>=97%</td><td>>=97%</td><td>>=98.5%</td><td class="highlight-row">>=98.5%</td></tr></tbody></table></div><!-- Battery Specs --><div class="specs-section"><h3>Battery Specifications</h3><table class="specs-table"><thead><tr><th>Model</th><th>1KS</th><th>2KS</th><th>3KS</th><th>6KS</th><th>10KS</th></tr></thead><tbody><tr><td>Battery Energy</td><td>230.4Wh</td><td>460.8Wh</td><td>614.4Wh</td><td>1228.8Wh</td><td>1536.0Wh</td></tr><tr><td>Charge Time</td><td><1h</td><td><1h</td><td><1h</td><td><1h</td><td><1h</td></tr><tr><td>Runtime 50% Load</td><td>15.5min</td><td>15.5min</td><td>15.0min</td><td>15.5min</td><td>9.5min</td></tr><tr><td>Runtime 100% Load</td><td>5.0min</td><td>5.0min</td><td>4.5min</td><td>5.0min</td><td>2.5min</td></tr></tbody></table></div></div></section><footer><p>&#169; 2026 Talegent Innovation Technology Co., Ltd. All rights reserved. | Vitality Series Sodium-ion UPS | <a href="mailto:dean@talegent-ess.com">dean@talegent-ess.com</a> | <a href="https://www.talegent-ess.com" target="_blank">www.talegent-ess.com</a></p></footer><!-- WhatsApp Floating Button --><a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20UPS%20products." target="_blank" class="whatsapp-float"> &#128172; <span class="tooltip">Chat with us!</span></a><script> function toggleMenu() { document.getElementById('navLinks').classList.toggle('active'); } document.querySelectorAll('.nav-links a').forEach(link => { link.addEventListener('click', () => { document.getElementById('navLinks').classList.remove('active'); }); }); function switchTab(tab) { document.querySelectorAll('.product-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.product-table-wrap').forEach(t => t.style.display = 'none'); document.querySelector('.product-tab[onclick*="' + tab + '"]').classList.add('active'); document.getElementById('tab-' + tab).style.display = 'block'; } </script><script>// ============================================================ // Talegent Visitor Analytics Tracker - Client Side // Runs in browser - collects anonymized visitor data // Compliant with GDPR & China Personal Information Protection Law // ============================================================ (function() { 'use strict'; // Configuration const API_URL = 'https://talegent-tracker-api.tanyong2396.workers.dev/api/track'; const SITE_NAME = 'Talegent Sodium UPS'; const SITE_VERSION = '1.0'; const COOKIE_NAME = 'talegent_visitor'; const COOKIE_EXPIRY_DAYS = 365; // Session tracking const pageLoadTime = Date.now(); const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); // ============================================================ // Cookie management for anonymous visitor ID // ============================================================ function getVisitorId() { const cookies = document.cookie.split('; '); for (let c of cookies) { const [name, value] = c.split('='); if (name === COOKIE_NAME) return value; } // Generate new anonymous ID const newId = 'vis_' + Date.now() + '_' + Math.random().toString(36).substr(2, 12); const expires = new Date(Date.now() + COOKIE_EXPIRY_DAYS * 86400000).toUTCString(); document.cookie = COOKIE_NAME + '=' + newId + '; expires=' + expires + '; path=/; SameSite=Lax'; return newId; } // ============================================================ // Collect anonymized user information // ============================================================ function collectUserInfo() { var ua = navigator.userAgent; // Device type detection from UA (no storage of raw UA) var deviceType = 'Desktop'; if (/Mobile|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) { deviceType = 'Mobile'; } else if (/Tablet|iPad|PlayBook|Silk/i.test(ua)) { deviceType = 'Tablet'; } // OS detection (category only, no version) var os = 'Unknown'; if (ua.indexOf('Windows') !== -1) os = 'Windows'; else if (ua.indexOf('Mac OS') !== -1) os = 'macOS'; else if (ua.indexOf('Linux') !== -1) os = 'Linux'; else if (ua.indexOf('Android') !== -1) os = 'Android'; else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) os = 'iOS'; // Browser detection (category only) var browser = 'Unknown'; if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1) browser = 'Chrome'; else if (ua.indexOf('Firefox') !== -1) browser = 'Firefox'; else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) browser = 'Safari'; else if (ua.indexOf('Edg') !== -1) browser = 'Edge'; else if (ua.indexOf('MSIE') !== -1 || ua.indexOf('Trident') !== -1) browser = 'Internet Explorer'; return { visitor_id: getVisitorId(), session_id: sessionId, url: window.location.href, referrer: document.referrer || '(direct)', language: navigator.language || 'unknown', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown', screen_width: window.screen.width, screen_height: window.screen.height, device_type: deviceType, os: os, browser: browser, site_name: SITE_NAME, site_version: SITE_VERSION, }; } // ============================================================ // Send tracking data to Worker API // ============================================================ function sendTrackData(eventData) { var payload = { ...collectUserInfo(), ...eventData, time_on_page: Date.now() - pageLoadTime, }; // Use sendBeacon for reliability if (navigator.sendBeacon) { var blob = new Blob([JSON.stringify(payload)], { type: 'application/json' }); navigator.sendBeacon(API_URL, blob); } else { fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), keepalive: true, }).catch(function() {}); } } // ============================================================ // Track page view // ============================================================ function trackPageView() { sendTrackData({ event_type: 'pageview', page_title: document.title, }); } // ============================================================ // Track clicks (anonymized) // ============================================================ function setupClickTracking() { document.addEventListener('click', function(e) { var target = e.target.closest('a, button, .btn, [onclick]'); if (!target) return; var href = target.href || ''; var text = (target.textContent || '').trim().substring(0, 100); var category = 'general'; var eventType = 'click'; if (href.indexOf('wa.me') !== -1 || href.indexOf('whatsapp') !== -1) { category = 'whatsapp'; eventType = 'whatsapp_click'; } else if (href.indexOf('mailto:') !== -1) { category = 'email'; eventType = 'email_click'; } else if (href.indexOf('#') === 0) { category = 'navigation'; eventType = 'nav_click'; } else if (target.tagName === 'BUTTON' || (target.className || '').indexOf('btn') !== -1) { category = 'button'; } sendTrackData({ event_type: eventType, category: category, element_text: text.substring(0, 50), href: href.substring(0, 200), }); }, true); } // ============================================================ // Track scroll depth (anonymized) // ============================================================ var maxScroll = 0; function setupScrollTracking() { var timer = null; window.addEventListener('scroll', function() { if (timer) clearTimeout(timer); timer = setTimeout(function() { var percent = Math.round( (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight * 100 ); if (percent > maxScroll) { maxScroll = percent; if (percent === 25 || percent === 50 || percent === 75 || percent === 100) { sendTrackData({ event_type: 'scroll', category: 'engagement', scroll_depth: percent + '%', }); } } }, 500); }, { passive: true }); } // ============================================================ // Track time on page // ============================================================ function setupTimeTracking() { setTimeout(function() { sendTrackData({ event_type: 'time_on_page', category: 'engagement', label: '30s' }); }, 30000); setTimeout(function() { sendTrackData({ event_type: 'time_on_page', category: 'engagement', label: '60s' }); }, 60000); } // ============================================================ // Track page leave // ============================================================ function setupLeaveTracking() { window.addEventListener('beforeunload', function() { sendTrackData({ event_type: 'pageleave', category: 'engagement', duration: Date.now() - pageLoadTime, max_scroll: maxScroll + '%', }); }); } // ============================================================ // Initialize // ============================================================ function init() { if (document.readyState === 'complete') { trackPageView(); } else { window.addEventListener('load', trackPageView); } setupClickTracking(); setupScrollTracking(); setupTimeTracking(); setupLeaveTracking(); console.log('Talegent Analytics initialized ✓'); } init(); })();</script></body></html><!-- ===== PARTNER SECTION ===== --><section class="partner" id="partner"><div class="container"><h2 class="section-title">We Are Looking for Partners!</h2><p class="section-subtitle">Join Talegent in revolutionizing the UPS industry with sodium-ion technology</p><div class="partner-grid"><div class="partner-card"><div class="icon">&#127758;</div><h4>Distributors & Resellers</h4><p>Join our global partner network and bring the world's first sodium-ion UPS to your market.</p></div><div class="partner-card"><div class="icon">&#128295;</div><h4>System Integrators</h4><p>Integrate Vitality Series into your solutions for data centers, telecom, and industrial applications.</p></div><div class="partner-card"><div class="icon">&#127873;</div><h4>OEM Partners</h4><p>Customize sodium-ion UPS for your brand with our flexible OEM/ODM program.</p></div><div class="partner-card"><div class="icon">&#129514;</div><h4>Technology Partners</h4><p>Co-develop next-gen energy storage solutions with our R&D team.</p></div></div><h3 style="color:white;font-size:1.3rem;margin-bottom:1.5rem;">&#128161; Why Partner with Talegent?</h3><div class="partner-benefits"><div class="partner-benefit"><div class="icon">&#127919;</div><p><strong style="color:white;">First-mover advantage</strong><br>in sodium-ion UPS market</p></div><div class="partner-benefit"><div class="icon">&#128218;</div><p><strong style="color:white;">Comprehensive support</strong><br>Technical support & training</p></div><div class="partner-benefit"><div class="icon">&#128176;</div><p><strong style="color:white;">Competitive pricing</strong><br>& territory protection</p></div><div class="partner-benefit"><div class="icon">&#128240;</div><p><strong style="color:white;">Marketing materials</strong><br>Sales enablement resources</p></div><div class="partner-benefit"><div class="icon">&#128640;</div><p><strong style="color:white;">Joint development</strong><br>Product innovation opportunities</p></div></div></div></section> `;
+const INDEX_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talegent® Sodium-ion UPS Solution</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.6; }
+        :root { --navy:#0A1F44; --blue:#1A73E8; --teal:#009688; --orange:#FF6F00; --green:#2E7D32; --red:#C62828; --purple:#6A1B9A; --light-bg:#F5F7FA; --card-bg:#EEF1F6; --dark:#1a1a2e; --gray:#666677; --whatsapp:#25D366; }
+        
+        .navbar { position:fixed; top:0; width:100%; background:rgba(10,31,68,0.95); backdrop-filter:blur(10px); z-index:1000; padding:0 2rem; display:flex; justify-content:space-between; align-items:center; height:70px; border-bottom:3px solid var(--blue); }
+        .navbar .logo { color:white; font-size:1.4rem; font-weight:700; }
+        .navbar .logo span { color:var(--blue); }
+        .nav-links { display:flex; gap:2rem; list-style:none; }
+        .nav-links a { color:rgba(255,255,255,0.85); text-decoration:none; font-size:0.95rem; font-weight:500; transition:color 0.3s; }
+        .nav-links a:hover { color:var(--blue); }
+        .hamburger { display:none; flex-direction:column; cursor:pointer; gap:5px; }
+        .hamburger span { width:25px; height:3px; background:white; border-radius:2px; }
+
+        .hero { background:linear-gradient(135deg,var(--navy) 0%,#0D2B5A 50%,#1A3A6A 100%); min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:100px 2rem 60px; position:relative; overflow:hidden; }
+        .hero::before { content:''; position:absolute; top:0;left:0;right:0;bottom:0; background:radial-gradient(circle at 20% 50%,rgba(26,115,232,0.15) 0%,transparent 50%),radial-gradient(circle at 80% 50%,rgba(255,111,0,0.1) 0%,transparent 50%); }
+        .hero * { position:relative; z-index:1; }
+        .hero h1 { font-size:3.2rem; color:white; margin-bottom:0.5rem; font-weight:800; }
+        .hero h1 span { color:var(--blue); }
+        .hero .tagline { font-size:1.3rem; color:#88CCFF; margin-bottom:2.5rem; font-weight:300; }
+        .hero-cta { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; }
+        .btn { display:inline-block; padding:14px 32px; border-radius:8px; text-decoration:none; font-weight:600; font-size:1rem; transition:all 0.3s; cursor:pointer; }
+        .btn-primary { background:var(--blue); color:white; }
+        .btn-primary:hover { background:#1557B0; transform:translateY(-2px); }
+        .btn-whatsapp { background:var(--whatsapp); color:white; }
+        .btn-whatsapp:hover { background:#1DA851; transform:translateY(-2px); }
+        .btn-outline { border:2px solid rgba(255,255,255,0.3); color:white; }
+        .btn-outline:hover { border-color:white; transform:translateY(-2px); }
+        .hero-features { display:flex; gap:2rem; margin-top:3rem; flex-wrap:wrap; justify-content:center; }
+        .hero-feature { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.2rem 2rem; min-width:180px; backdrop-filter:blur(5px); }
+        .hero-feature .icon { font-size:1.8rem; }
+        .hero-feature .value { color:white; font-size:1.1rem; font-weight:700; margin-top:0.3rem; }
+        .hero-feature .label { color:#88AACC; font-size:0.85rem; }
+
+        section { padding:5rem 2rem; }
+        .section-title { text-align:center; font-size:2.2rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; }
+        .section-subtitle { text-align:center; color:var(--gray); font-size:1.1rem; margin-bottom:3rem; max-width:700px; margin-left:auto; margin-right:auto; }
+        .container { max-width:1200px; margin:0 auto; }
+
+        .pain-points { background:var(--light-bg); }
+        .pain-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; max-width:1000px; margin:0 auto; }
+        .pain-item { display:flex; align-items:center; gap:1rem; background:white; padding:1rem 1.5rem; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+        .pain-item .arrow { color:var(--blue); font-size:1.2rem; font-weight:700; margin:0 0.5rem; }
+        .pain-item .problem { color:var(--red); font-weight:600; font-size:0.9rem; flex:1; }
+        .pain-item .solution { color:var(--green); font-weight:600; font-size:0.9rem; flex:1; }
+
+        .advantages-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+        .advantage-card { background:var(--card-bg); border-radius:12px; padding:1.5rem; border-top:4px solid var(--blue); transition:transform 0.3s,box-shadow 0.3s; }
+        .advantage-card:hover { transform:translateY(-5px); box-shadow:0 10px 30px rgba(0,0,0,0.1); }
+        .advantage-card .icon { font-size:2rem; margin-bottom:0.5rem; }
+        .advantage-card h3 { font-size:1.1rem; margin-bottom:0.5rem; }
+        .advantage-card ul { list-style:none; margin-top:0.5rem; }
+        .advantage-card ul li { color:var(--gray); font-size:0.85rem; padding:0.2rem 0; padding-left:1.2rem; position:relative; }
+        .advantage-card ul li::before { content:'\2022'; position:absolute; left:0; color:var(--blue); font-weight:bold; }
+
+        .comparison { background:var(--light-bg); }
+        .table-wrapper { overflow-x:auto; }
+        table.comparison-table { width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 15px rgba(0,0,0,0.08); }
+        table.comparison-table th { background:var(--navy); color:white; padding:1rem; font-size:0.95rem; text-align:center; }
+        table.comparison-table td { padding:0.85rem 1rem; text-align:center; font-size:0.9rem; border-bottom:1px solid #eee; }
+        table.comparison-table tr:nth-child(even) td { background:#FAFBFC; }
+        table.comparison-table .highlight { background:#E3F2FD !important; font-weight:700; color:var(--blue); }
+        table.comparison-table td:first-child { text-align:left; font-weight:600; color:var(--dark); }
+
+        .charts-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:2rem; }
+        .chart-box { background:white; border-radius:12px; padding:1.5rem; box-shadow:0 2px 10px rgba(0,0,0,0.06); text-align:center; }
+        .chart-box h4 { font-size:1rem; color:var(--navy); margin-bottom:1rem; }
+        .bar-chart { display:flex; align-items:flex-end; justify-content:center; gap:1.5rem; height:180px; padding-top:1rem; }
+        .bar-group { display:flex; flex-direction:column; align-items:center; gap:0.3rem; }
+        .bar { width:50px; border-radius:6px 6px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:5px; font-size:0.75rem; font-weight:700; color:white; min-height:20px; }
+        .bar-label { font-size:0.75rem; color:var(--gray); text-align:center; }
+        .bar-gray { background:#9E9E9E; }
+        .bar-blue { background:var(--blue); }
+        .bar-orange { background:var(--orange); }
+
+        .tco-section { background:var(--navy); color:white; }
+        .tco-section .section-title { color:white; }
+        .tco-section .section-subtitle { color:#88AACC; }
+        .tco-grid { display:grid; grid-template-columns:2fr 1fr; gap:2rem; align-items:start; }
+        .tco-chart-box { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:1.5rem; }
+        .tco-chart-box h4 { color:white; margin-bottom:1rem; text-align:center; }
+        .tco-breakdown { background:rgba(255,255,255,0.05); border-radius:12px; padding:1.5rem; border:1px solid rgba(255,255,255,0.1); }
+        .tco-breakdown h4 { color:white; margin-bottom:1rem; }
+        .tco-breakdown p { color:#AABBCC; font-size:0.85rem; margin-bottom:0.3rem; }
+        .tco-breakdown .highlight-text { color:var(--orange); font-weight:700; font-size:1.1rem; margin-top:0.5rem; }
+        .roi-metrics { display:grid; grid-template-columns:repeat(5,1fr); gap:1rem; margin-top:2rem; }
+        .roi-item { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:1rem; text-align:center; }
+        .roi-item .value { font-size:1.5rem; font-weight:800; }
+        .roi-item .label { font-size:0.8rem; color:#88AACC; margin-top:0.3rem; }
+
+        .apps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+        .app-card { background:var(--card-bg); border-radius:12px; padding:1.5rem; border-top:4px solid var(--teal); }
+        .app-card .icon { font-size:1.8rem; margin-bottom:0.5rem; }
+        .app-card h3 { font-size:1.1rem; margin-bottom:0.5rem; }
+        .app-card ul { list-style:none; }
+        .app-card ul li { color:var(--gray); font-size:0.85rem; padding:0.2rem 0; padding-left:1.2rem; position:relative; }
+        .app-card ul li::before { content:'\2022'; position:absolute; left:0; color:var(--teal); font-weight:bold; }
+
+        .specs-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
+        .specs-table { width:100%; border-collapse:collapse; }
+        .specs-table td { padding:0.6rem 1rem; border-bottom:1px solid #eee; font-size:0.9rem; }
+        .specs-table td:first-child { font-weight:600; color:var(--navy); width:40%; }
+        .specs-table td:last-child { color:var(--gray); }
+        .specs-table tr:nth-child(even) td { background:#FAFBFC; }
+        .integration-list { background:var(--card-bg); border-radius:12px; padding:1.5rem; }
+        .integration-list h3 { margin-bottom:1rem; color:var(--navy); }
+        .integration-list ul { list-style:none; }
+        .integration-list ul li { padding:0.4rem 0; padding-left:1.8rem; position:relative; color:var(--gray); font-size:0.9rem; }
+        .integration-list ul li::before { content:'\2705'; position:absolute; left:0; }
+
+        .cta-section { background:linear-gradient(135deg,var(--navy),#0D2B5A); text-align:center; padding:4rem 2rem; }
+        .cta-section h2 { color:white; font-size:2.2rem; margin-bottom:0.5rem; }
+        .cta-section p { color:#88AACC; font-size:1.1rem; margin-bottom:2rem; }
+        .cta-buttons { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+        .cta-buttons .btn { min-width:200px; }
+
+        footer { background:#06122B; color:#667788; text-align:center; padding:2rem; font-size:0.85rem; }
+        footer a { color:var(--blue); text-decoration:none; }
+
+        .whatsapp-float { position:fixed; bottom:20px; right:20px; z-index:999; background:var(--whatsapp); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; text-decoration:none; box-shadow:0 4px 15px rgba(37,211,102,0.4); transition:all 0.3s; }
+        .whatsapp-float:hover { transform:scale(1.1); box-shadow:0 6px 20px rgba(37,211,102,0.6); }
+        .whatsapp-float .tooltip { position:absolute; right:70px; background:white; color:var(--dark); padding:8px 16px; border-radius:8px; font-size:0.85rem; font-weight:500; white-space:nowrap; box-shadow:0 2px 10px rgba(0,0,0,0.1); opacity:0; pointer-events:none; transition:opacity 0.3s; }
+        .whatsapp-float:hover .tooltip { opacity:1; }
+
+        @media (max-width:1024px) { .advantages-grid,.apps-grid { grid-template-columns:repeat(2,1fr); } .charts-grid { grid-template-columns:repeat(2,1fr); } .roi-metrics { grid-template-columns:repeat(3,1fr); } .tco-grid { grid-template-columns:1fr; } }
+        @media (max-width:768px) { .nav-links { display:none; position:absolute; top:70px; left:0; right:0; background:var(--navy); flex-direction:column; padding:1rem 2rem; gap:1rem; } .nav-links.active { display:flex; } .hamburger { display:flex; } .hero h1 { font-size:2rem; } .hero .tagline { font-size:1rem; } .hero-features { gap:1rem; } .hero-feature { min-width:140px; padding:1rem; } .pain-grid { grid-template-columns:1fr; } .advantages-grid,.apps-grid { grid-template-columns:1fr; } .charts-grid { grid-template-columns:1fr; } .specs-grid { grid-template-columns:1fr; } .roi-metrics { grid-template-columns:repeat(2,1fr); } section { padding:3rem 1rem; } .section-title { font-size:1.6rem; } }
+        @media (max-width:480px) { .hero h1 { font-size:1.5rem; } .hero-cta { flex-direction:column; align-items:center; } .btn { width:100%; text-align:center; } .roi-metrics { grid-template-columns:1fr; } }
+    
+/* ===== Hero Badge ===== */
+.hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #1a1a2e;
+    padding: 8px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.hero-sub {
+    font-size: 1.4rem;
+    color: #4fc3f7;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.hero-desc {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.hero-tagline {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 2rem;
+}
+
+/* ===== Company Section ===== */
+.company {
+    padding: 5rem 0;
+    background: #f8f9fa;
+}
+
+.company-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.company-text p {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.company-values {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.company-values span {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.company-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.company-stat {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    text-align: center;
+}
+
+.company-stat .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.company-stat h4 {
+    color: #1a237e;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.company-stat p {
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* ===== Products Section ===== */
+.product-line {
+    padding: 5rem 0;
+    background: white;
+}
+
+.product-intro {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    color: #555;
+    line-height: 1.8;
+    font-size: 0.95rem;
+}
+
+.product-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.product-tab {
+    padding: 10px 24px;
+    border: 2px solid #1a237e;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #1a237e;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+}
+
+.product-tab.active,
+.product-tab:hover {
+    background: #1a237e;
+    color: white;
+}
+
+.product-table-wrap {
+    overflow-x: auto;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.product-table th {
+    background: #1a237e;
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.product-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+}
+
+.product-table tr:hover td {
+    background: #f5f5ff;
+}
+
+/* ===== Certifications Section ===== */
+.certifications {
+    padding: 5rem 0;
+    background: #f8f9fa;
+}
+
+.cert-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+}
+
+.cert-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+
+.cert-card h4 {
+    color: #1a237e;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.cert-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.cert-card li {
+    padding: 4px 0;
+    color: #555;
+    font-size: 0.85rem;
+}
+
+.cert-card li:before {
+    content: "\2713";
+    color: #4caf50;
+    margin-right: 8px;
+}
+
+/* ===== Env Table ===== */
+.env-table-wrap {
+    overflow-x: auto;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.env-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.env-table th {
+    background: #1a237e;
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.env-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+}
+
+.env-table tr:hover td {
+    background: #f5f5ff;
+}
+
+/* ===== Partner Section ===== */
+.partner {
+    padding: 5rem 0;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white;
+}
+
+.partner .section-title {
+    color: white;
+}
+
+.partner .section-subtitle {
+    color: rgba(255,255,255,0.8);
+}
+
+.partner-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+}
+
+.partner-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: transform 0.3s;
+}
+
+.partner-card:hover {
+    transform: translateY(-5px);
+}
+
+.partner-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.partner-card h4 {
+    color: #FFD700;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+}
+
+.partner-card p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.partner-benefits {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.partner-benefit {
+    text-align: center;
+    flex: 1;
+    min-width: 150px;
+}
+
+.partner-benefit .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.partner-benefit p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* ===== Specs Section ===== */
+.tech-specs {
+    padding: 5rem 0;
+    background: #f8f9fa;
+}
+
+.specs-section {
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+}
+
+.specs-section h3 {
+    color: #1a237e;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    border-left: 4px solid #FFD700;
+    padding-left: 12px;
+}
+
+.specs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.specs-table th {
+    background: #1a237e;
+    color: white;
+    padding: 10px 16px;
+    text-align: left;
+}
+
+.specs-table td {
+    padding: 8px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+}
+
+.specs-table tr:hover td {
+    background: #f0f0ff;
+}
+
+.highlight-row {
+    background: #fff8e1;
+    font-weight: 700;
+    color: #e65100 !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .company-grid {
+        grid-template-columns: 1fr;
+    }
+    .company-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    .cert-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .partner-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .partner-benefits {
+        gap: 1rem;
+    }
+    .partner-benefit {
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .company-stats {
+        grid-template-columns: 1fr;
+    }
+    .cert-grid {
+        grid-template-columns: 1fr;
+    }
+    .partner-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">Talegent<span>&#174;</span></div>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="#company">About</a></li>
+        <li><a href="#products">Products</a></li>
+        <li><a href="#certifications">Certifications</a></li>
+        <li><a href="#specs">Specs</a></li>
+        <li><a href="#partner">Partner</a></li>
+        <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="hamburger" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+    </div>
+</nav>
+
+<section class="hero" id="home">
+    <div class="hero-badge">&#9889; THE WORLD'S 1st SODIUM-ION UPS</div>
+    <h1>Talegent<span>&#174;</span> Vitality Series</h1>
+    <p class="hero-sub">1-10kVA Sodium-ion UPS Solution</p>
+    <p class="hero-desc">
+        True Double Conversion On-Line UPS &mdash; Output Power Factor 1.0<br>
+        Next-Gen Bridgeless PFC Technology &bull; Line Efficiency up to 96% &bull; ECO Mode up to 98.5%<br>
+        Fast-charge < 1 hour &bull; 3,000 Cycles Life &bull; -20&#176;C Operation
+    </p>
+    <p class="hero-tagline">&#127775; Shenzhen Talegent Innovation Technology Co., Ltd &nbsp;|&nbsp; www.talegent-ess.com</p>
+    <div class="hero-cta">
+        <a href="#products" class="btn btn-primary">View Products</a>
+        <a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20Vitality%20Series%20UPS." target="_blank" class="btn btn-whatsapp">&#128172; Chat on WhatsApp</a>
+        <a href="mailto:dean@talegent-ess.com" class="btn btn-outline">&#9993; Email Us</a>
+    </div>
+    <div class="hero-features">
+        <div class="hero-feature"><div class="icon">&#9889;</div><div class="value">Output PF 1.0</div><div class="label">Full rated power</div></div>
+        <div class="hero-feature"><div class="icon">&#128200;</div><div class="value">Up to 96%</div><div class="label">Line efficiency</div></div>
+        <div class="hero-feature"><div class="icon">&#9201;</div><div class="value">< 1 hour</div><div class="label">Fast charge</div></div>
+        <div class="hero-feature"><div class="icon">&#128260;</div><div class="value">3,000 Cycles</div><div class="label">@ 80% DoD</div></div>
+        <div class="hero-feature"><div class="icon">&#10052;&#65039;</div><div class="value">-20&#176;C</div><div class="label">Cold operation</div></div>
+    </div>
+</section><!-- COMPANY -->
+<section class="company" id="company">
+    <div class="container">
+        <h2 class="section-title">About Talegent</h2>
+        <p class="section-subtitle">Shenzhen Talegent Innovation Technology Co., Ltd</p>
+        <div class="company-grid">
+            <div class="company-text">
+                <p>Shenzhen Talegent Innovation Technology Co., Ltd is a high-tech enterprise specializing in the research, development and industrialization of sodium-ion battery technology. We are dedicated to providing safe, reliable and environmentally friendly energy storage solutions for global customers.</p>
+                <p>Our team brings together battery technology experts from leading research institutions worldwide. We hold core intellectual property rights in sodium-ion battery materials, cell design, BMS management systems and system integration. The Vitality series sodium-ion UPS products have passed multiple international certifications and are widely used in data centers, communication base stations, industrial control, medical equipment and outdoor energy storage.</p>
+                <div class="company-values">
+                    <span>Innovation</span>
+                    <span>Reliability</span>
+                    <span>Green</span>
+                    <span>Win-Win</span>
+                </div>
+            </div>
+            <div class="company-stats">
+                <div class="company-stat">
+                    <div class="icon">&#128300;</div>
+                    <h4>Technology Leadership</h4>
+                    <p>Proprietary sodium-ion battery core technology with multiple invention patents</p>
+                </div>
+                <div class="company-stat">
+                    <div class="icon">&#127981;</div>
+                    <h4>Smart Manufacturing</h4>
+                    <p>Modern production base with strict ISO quality management system</p>
+                </div>
+                <div class="company-stat">
+                    <div class="icon">&#127758;</div>
+                    <h4>Global Service</h4>
+                    <p>Sales network covering 30+ countries across Asia Pacific, Europe and North America</p>
+                </div>
+                <div class="company-stat">
+                    <div class="icon">&#127795;</div>
+                    <h4>Green & Sustainable</h4>
+                    <p>Sodium abundance 2.3% in earth's crust, recyclable materials, low carbon throughout lifecycle</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section><!-- PRODUCTS -->
+<section class="product-line" id="products">
+    <div class="container">
+        <h2 class="section-title">Vitality Series Sodium-ion UPS</h2>
+        <p class="section-subtitle">The world's first sodium-ion battery powered on-line UPS</p>
+        <p class="product-intro">The Vitality series is the world's first sodium-ion battery powered on-line UPS. Featuring true double conversion technology, output power factor 1.0, and efficiency up to 96%+, it perfectly replaces traditional lead-acid and lithium battery UPS systems.</p>
+        <div class="product-tabs">
+            <span class="product-tab active" onclick="switchTab('tower')">Tower Series</span>
+            <span class="product-tab" onclick="switchTab('rack')">Rack/Tower Series</span>
+            <span class="product-tab" onclick="switchTab('ebm')">External Battery Modules</span>
+        </div>
+        <div class="product-table-wrap" id="tab-tower">
+            <table class="product-table">
+                <thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead>
+                <tbody>
+                    <tr><td>1KS</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>275x165x220</td><td>7.8kg</td></tr>
+                    <tr><td>2KS</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>390x190x320</td><td>14.3kg</td></tr>
+                    <tr><td>3KS</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>390x190x320</td><td>16.3kg</td></tr>
+                    <tr><td>6KS</td><td>6kVA/6kW</td><td>208-240V</td><td>1228.8Wh</td><td>450x190x700</td><td>31.4kg</td></tr>
+                    <tr><td>10KS</td><td>10kVA/10kW</td><td>208-240V</td><td>1536.0Wh</td><td>450x190x700</td><td>35.8kg</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="product-table-wrap" id="tab-rack" style="display:none;">
+            <table class="product-table">
+                <thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead>
+                <tbody>
+                    <tr><td>1KS-RT</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>440x355x85</td><td>11.4kg</td></tr>
+                    <tr><td>2KS-RT</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>440x485x85</td><td>16.35kg</td></tr>
+                    <tr><td>3KS-RT</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>440x560x85</td><td>19.85kg</td></tr>
+                    <tr><td>6K-RT</td><td>6kVA/6kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.15kg</td></tr>
+                    <tr><td>10K-RT</td><td>10kVA/10kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.35kg</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="product-table-wrap" id="tab-ebm" style="display:none;">
+            <table class="product-table">
+                <thead><tr><th>Model</th><th>Voltage</th><th>Energy</th><th>Dimension (mm)</th><th>Weight</th><th>Cells</th></tr></thead>
+                <tbody>
+                    <tr><td>EBP1K-RT</td><td>36V</td><td>460.8Wh</td><td>440x485x85</td><td>11.85kg</td><td>NA-481840W x4</td></tr>
+                    <tr><td>EBP2K-RT</td><td>72V</td><td>921.6Wh</td><td>440x565x85</td><td>16.85kg</td><td>NA-481840W x6</td></tr>
+                    <tr><td>EBP3K-RT</td><td>96V</td><td>1228.8Wh</td><td>440x715x85</td><td>21.10kg</td><td>NA-481840W x8</td></tr>
+                    <tr><td>BX192064Na-RT</td><td>192V</td><td>1228.8Wh</td><td>440x680x85</td><td>22.5kg</td><td>NA-481840W x4</td></tr>
+                    <tr><td>BX240064Na-RT</td><td>240V</td><td>1536.0Wh</td><td>440x680x85</td><td>25.5kg</td><td>NA-481840W x5</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section><!-- CERTIFICATIONS -->
+<section class="certifications" id="certifications">
+    <div class="container">
+        <h2 class="section-title">Quality Assurance</h2>
+        <p class="section-subtitle">The Vitality series has passed multiple international authoritative certifications for global market access</p>
+        <div class="cert-grid">
+            <div class="cert-card">
+                <h4>&#128737;&#65039; Safety Certifications</h4>
+                <ul>
+                    <li>EN/IEC 62040-1 (UPS Safety)</li>
+                    <li>IEC 62619 (Battery Safety)</li>
+                    <li>UN 38.3 (Transport)</li>
+                    <li>MSDS</li>
+                </ul>
+            </div>
+            <div class="cert-card">
+                <h4>&#9889; Performance Standards</h4>
+                <ul>
+                    <li>EN/IEC 62040-3 (UPS Performance)</li>
+                    <li>EN/IEC 61000 (EMC)</li>
+                    <li>EN62040-2 C2 (CE)</li>
+                </ul>
+            </div>
+            <div class="cert-card">
+                <h4>&#127793; Environmental Compliance</h4>
+                <ul>
+                    <li>RoHS (Hazardous Substances)</li>
+                    <li>REACH (Chemical Registration)</li>
+                    <li>WEEE (Waste Electronics)</li>
+                </ul>
+            </div>
+            <div class="cert-card">
+                <h4>&#128202; Quality Systems</h4>
+                <ul>
+                    <li>ISO 9001 (Quality Management)</li>
+                    <li>ISO 14001 (Environmental Management)</li>
+                    <li>ISO 45001 (Occupational Health)</li>
+                </ul>
+            </div>
+        </div>
+        <h3 style="text-align:center;color:var(--navy);margin:2rem 0 1rem;font-size:1.3rem;">Environmental Parameters</h3>
+        <div class="env-table-wrap">
+            <table class="env-table">
+                <thead><tr><th>Parameter</th><th>Specification</th></tr></thead>
+                <tbody>
+                    <tr><td>Operating Temperature</td><td>-20&#176;C to 40&#176;C</td></tr>
+                    <tr><td>Storage Temperature</td><td>-20&#176;C to 50&#176;C</td></tr>
+                    <tr><td>Relative Humidity</td><td>0-95% (non-condensing)</td></tr>
+                    <tr><td>Noise (1-3KS)</td><td><50dB @ 1 meter</td></tr>
+                    <tr><td>Noise (6KS)</td><td><56dB @ 1 meter</td></tr>
+                    <tr><td>Noise (10KS)</td><td><58dB @ 1 meter</td></tr>
+                    <tr><td>Altitude</td><td>Up to 1000m without derating</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="pain-points" id="pain-points">
+    <div class="container">
+        <h2 class="section-title">UPS Battery Pain Points &#8594; Sodium-ion Solution</h2>
+        <p class="section-subtitle">How sodium-ion directly addresses the 5 biggest UPS battery challenges</p>
+        <div class="pain-grid">
+            <div class="pain-item"><span class="problem">&#128293; Thermal Runaway Risk</span><span class="arrow">&#8594;</span><span class="solution">&#10004; Zero Fire Risk</span></div>
+            <div class="pain-item"><span class="problem">&#10052;&#65039; Cold Temperature Failure</span><span class="arrow">&#8594;</span><span class="solution">&#10004; -20&#176;C Full Performance</span></div>
+            <div class="pain-item"><span class="problem">&#128176; High Replacement Cost</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 3x Longer Life</span></div>
+            <div class="pain-item"><span class="problem">&#9889; Slow Recharge</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 1C Fast Charge</span></div>
+            <div class="pain-item" style="grid-column:1/-1;justify-content:center;"><span class="problem">&#9851;&#65039; Environmental Hazard</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 100% Recyclable</span></div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+<!-- SPECS -->
+<section class="tech-specs" id="specs">
+    <div class="container">
+        <h2 class="section-title">Technical Specifications</h2>
+        <p class="section-subtitle">Vitality Series Detailed Specifications</p>
+        <div class="specs-section">
+            <h3>Input Specifications</h3>
+            <table class="specs-table">
+                <thead><tr><th>Parameter</th><th>1-3KS</th><th>6-10KS</th></tr></thead>
+                <tbody>
+                    <tr><td>Nominal Voltage</td><td>208/220/230/240VAC</td><td>208/220/230/240VAC</td></tr>
+                    <tr><td>Voltage Range</td><td>100-300VAC</td><td>110-300VAC</td></tr>
+                    <tr><td>Frequency</td><td>40-70Hz</td><td>40-70Hz</td></tr>
+                    <tr><td>Power Factor</td><td>>0.99</td><td>>0.99</td></tr>
+                    <tr><td>THDi</td><td><4% (linear load)</td><td><3% (linear load)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="specs-section">
+            <h3>Output Specifications</h3>
+            <table class="specs-table">
+                <thead><tr><th>Parameter</th><th>Specification</th></tr></thead>
+                <tbody>
+                    <tr><td>Nominal Voltage</td><td>208/220/230/240VAC</td></tr>
+                    <tr><td>Voltage Regulation</td><td>+/-1%</td></tr>
+                    <tr><td>Frequency</td><td>50/60Hz +/-0.1%</td></tr>
+                    <tr><td>Waveform</td><td>Pure Sine Wave</td></tr>
+                    <tr><td>Power Factor</td><td>1.0</td></tr>
+                    <tr><td>Crest Ratio</td><td>3:1</td></tr>
+                    <tr><td>THDu</td><td><3% (linear load)</td></tr>
+                    <tr><td>Transfer Time</td><td>0ms (line to battery)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="specs-section">
+            <h3>Efficiency</h3>
+            <table class="specs-table">
+                <thead><tr><th>Model</th><th>1KS</th><th>2KS</th><th>3KS</th><th>6KS</th><th>10KS</th></tr></thead>
+                <tbody>
+                    <tr><td>Line Mode</td><td>>=93%</td><td>>=93%</td><td>>=94.5%</td><td>>=95%</td><td class="highlight-row">>=96%</td></tr>
+                    <tr><td>ECO Mode</td><td>>=97%</td><td>>=97%</td><td>>=97%</td><td>>=98.5%</td><td class="highlight-row">>=98.5%</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="specs-section">
+            <h3>Battery Specifications</h3>
+            <table class="specs-table">
+                <thead><tr><th>Model</th><th>1KS</th><th>2KS</th><th>3KS</th><th>6KS</th><th>10KS</th></tr></thead>
+                <tbody>
+                    <tr><td>Battery Energy</td><td>230.4Wh</td><td>460.8Wh</td><td>614.4Wh</td><td>1228.8Wh</td><td>1536.0Wh</td></tr>
+                    <tr><td>Charge Time</td><td><1h</td><td><1h</td><td><1h</td><td><1h</td><td><1h</td></tr>
+                    <tr><td>Runtime 50% Load</td><td>15.5min</td><td>15.5min</td><td>15.0min</td><td>15.5min</td><td>9.5min</td></tr>
+                    <tr><td>Runtime 100% Load</td><td>5.0min</td><td>5.0min</td><td>4.5min</td><td>5.0min</td><td>2.5min</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- PARTNER -->
+<section class="partner" id="partner">
+    <div class="container">
+        <h2 class="section-title">We Are Looking for Partners!</h2>
+        <p class="section-subtitle">Join Talegent in revolutionizing the UPS industry with sodium-ion technology</p>
+        <div class="partner-grid">
+            <div class="partner-card">
+                <div class="icon">&#127758;</div>
+                <h4>Distributors & Resellers</h4>
+                <p>Join our global partner network and bring the world's first sodium-ion UPS to your market.</p>
+            </div>
+            <div class="partner-card">
+                <div class="icon">&#128295;</div>
+                <h4>System Integrators</h4>
+                <p>Integrate Vitality Series into your solutions for data centers, telecom, and industrial applications.</p>
+            </div>
+            <div class="partner-card">
+                <div class="icon">&#127873;</div>
+                <h4>OEM Partners</h4>
+                <p>Customize sodium-ion UPS for your brand with our flexible OEM/ODM program.</p>
+            </div>
+            <div class="partner-card">
+                <div class="icon">&#129514;</div>
+                <h4>Technology Partners</h4>
+                <p>Co-develop next-gen energy storage solutions with our R&D team.</p>
+            </div>
+        </div>
+        <h3 style="color:white;font-size:1.3rem;margin-bottom:1.5rem;">&#128161; Why Partner with Talegent?</h3>
+        <div class="partner-benefits">
+            <div class="partner-benefit">
+                <div class="icon">&#127919;</div>
+                <p><strong style="color:white;">First-mover advantage</strong><br>in sodium-ion UPS market</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128218;</div>
+                <p><strong style="color:white;">Comprehensive support</strong><br>Technical support & training</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128176;</div>
+                <p><strong style="color:white;">Competitive pricing</strong><br>& territory protection</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128240;</div>
+                <p><strong style="color:white;">Marketing materials</strong><br>Sales enablement resources</p>
+            </div>
+            <div class="partner-benefit">
+                <div class="icon">&#128640;</div>
+                <p><strong style="color:white;">Joint development</strong><br>Product innovation opportunities</p>
+            </div>
+        </div>
+    </div>
+</section><section class="cta-section" id="contact">
+    <h2>Ready to Partner with Talegent?</h2>
+    <p>Contact us today to explore partnership opportunities</p>
+    <div class="cta-buttons">
+        <a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20UPS%20products." target="_blank" class="btn btn-whatsapp" style="font-size:1.1rem;padding:16px 36px;">&#128172; Chat on WhatsApp</a>
+        <a href="mailto:dean@talegent-ess.com" class="btn btn-primary" style="font-size:1.1rem;padding:16px 36px;">&#9993; Email: dean@talegent-ess.com</a>
+    </div>
+</section>
+
+<footer>
+    <p>&#169; 2026 Talegent Innovation Technology Co., Ltd. All rights reserved. | Vitality Series Sodium-ion UPS | <a href="mailto:dean@talegent-ess.com">dean@talegent-ess.com</a> | <a href="https://www.talegent-ess.com" target="_blank">www.talegent-ess.com</a></p>
+</footer>
+
+<!-- WhatsApp Floating Button -->
+<a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20UPS%20products." target="_blank" class="whatsapp-float">
+    &#128172;
+    <span class="tooltip">Chat with us!</span>
+</a>
+
+<script>
+function toggleMenu() {
+    document.getElementById('navLinks').classList.toggle('active');
+}
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('active');
+    });
+});
+function switchTab(tab) {
+    document.querySelectorAll('.product-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.product-table-wrap').forEach(t => t.style.display = 'none');
+    document.querySelector('.product-tab[onclick*="' + tab + '"]').classList.add('active');
+    document.getElementById('tab-' + tab).style.display = 'block';}
+</script>
+
+<script src="tracker-client.js"></script>
+</body>
+</html>
+`;
 
 const DASHBOARD_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
