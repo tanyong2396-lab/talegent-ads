@@ -352,7 +352,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 }
 
 .cert-card li:before {
-    content: "✓";
+    content: "\u2713";
     color: #4caf50;
     margin-right: 8px;
 }
@@ -590,6 +590,8 @@ const INDEX_HTML = `<!DOCTYPE html>
         <div class="hero-feature"><div class="icon">&#10052;&#65039;</div><div class="value">-20&#176;C</div><div class="label">Cold operation</div></div>
     </div>
 </section><!-- COMPANY -->
+
+
 <section class="company" id="company">
     <div class="container">
         <h2 class="section-title">About Talegent</h2>
@@ -629,7 +631,140 @@ const INDEX_HTML = `<!DOCTYPE html>
             </div>
         </div>
     </div>
+</section><!-- PRODUCTS -->
+
+
+<section class="product-line" id="products">
+    <div class="container">
+        <h2 class="section-title">Vitality Series Sodium-ion UPS</h2>
+        <p class="section-subtitle">The world's first sodium-ion battery powered on-line UPS</p>
+        <p class="product-intro">The Vitality series is the world's first sodium-ion battery powered on-line UPS. Featuring true double conversion technology, output power factor 1.0, and efficiency up to 96%+, it perfectly replaces traditional lead-acid and lithium battery UPS systems.</p>
+        <div class="product-tabs">
+            <span class="product-tab active" onclick="switchTab('tower')">Tower Series</span>
+            <span class="product-tab" onclick="switchTab('rack')">Rack/Tower Series</span>
+            <span class="product-tab" onclick="switchTab('ebm')">External Battery Modules</span>
+        </div>
+        <div class="product-table-wrap" id="tab-tower">
+            <table class="product-table">
+                <thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead>
+                <tbody>
+                    <tr><td>1KS</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>275x165x220</td><td>7.8kg</td></tr>
+                    <tr><td>2KS</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>390x190x320</td><td>14.3kg</td></tr>
+                    <tr><td>3KS</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>390x190x320</td><td>16.3kg</td></tr>
+                    <tr><td>6KS</td><td>6kVA/6kW</td><td>208-240V</td><td>1228.8Wh</td><td>450x190x700</td><td>31.4kg</td></tr>
+                    <tr><td>10KS</td><td>10kVA/10kW</td><td>208-240V</td><td>1536.0Wh</td><td>450x190x700</td><td>35.8kg</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="product-table-wrap" id="tab-rack" style="display:none;">
+            <table class="product-table">
+                <thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead>
+                <tbody>
+                    <tr><td>1KS-RT</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>440x355x85</td><td>11.4kg</td></tr>
+                    <tr><td>2KS-RT</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>440x485x85</td><td>16.35kg</td></tr>
+                    <tr><td>3KS-RT</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>440x560x85</td><td>19.85kg</td></tr>
+                    <tr><td>6K-RT</td><td>6kVA/6kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.15kg</td></tr>
+                    <tr><td>10K-RT</td><td>10kVA/10kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.35kg</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="product-table-wrap" id="tab-ebm" style="display:none;">
+            <table class="product-table">
+                <thead><tr><th>Model</th><th>Voltage</th><th>Energy</th><th>Dimension (mm)</th><th>Weight</th><th>Cells</th></tr></thead>
+                <tbody>
+                    <tr><td>EBP1K-RT</td><td>36V</td><td>460.8Wh</td><td>440x485x85</td><td>11.85kg</td><td>NA-481840W x4</td></tr>
+                    <tr><td>EBP2K-RT</td><td>72V</td><td>921.6Wh</td><td>440x565x85</td><td>16.85kg</td><td>NA-481840W x6</td></tr>
+                    <tr><td>EBP3K-RT</td><td>96V</td><td>1228.8Wh</td><td>440x715x85</td><td>21.10kg</td><td>NA-481840W x8</td></tr>
+                    <tr><td>BX192064Na-RT</td><td>192V</td><td>1228.8Wh</td><td>440x680x85</td><td>22.5kg</td><td>NA-481840W x4</td></tr>
+                    <tr><td>BX240064Na-RT</td><td>240V</td><td>1536.0Wh</td><td>440x680x85</td><td>25.5kg</td><td>NA-481840W x5</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section><!-- CERTIFICATIONS -->
+
+
+<section class="certifications" id="certifications">
+    <div class="container">
+        <h2 class="section-title">Quality Assurance</h2>
+        <p class="section-subtitle">The Vitality series has passed multiple international authoritative certifications for global market access</p>
+        <div class="cert-grid">
+            <div class="cert-card">
+                <h4>&#128737;&#65039; Safety Certifications</h4>
+                <ul>
+                    <li>EN/IEC 62040-1 (UPS Safety)</li>
+                    <li>IEC 62619 (Battery Safety)</li>
+                    <li>UN 38.3 (Transport)</li>
+                    <li>MSDS</li>
+                </ul>
+            </div>
+            <div class="cert-card">
+                <h4>&#9889; Performance Standards</h4>
+                <ul>
+                    <li>EN/IEC 62040-3 (UPS Performance)</li>
+                    <li>EN/IEC 61000 (EMC)</li>
+                    <li>EN62040-2 C2 (CE)</li>
+                </ul>
+            </div>
+            <div class="cert-card">
+                <h4>&#127793; Environmental Compliance</h4>
+                <ul>
+                    <li>RoHS (Hazardous Substances)</li>
+                    <li>REACH (Chemical Registration)</li>
+                    <li>WEEE (Waste Electronics)</li>
+                </ul>
+            </div>
+            <div class="cert-card">
+                <h4>&#128202; Quality Systems</h4>
+                <ul>
+                    <li>ISO 9001 (Quality Management)</li>
+                    <li>ISO 14001 (Environmental Management)</li>
+                    <li>ISO 45001 (Occupational Health)</li>
+                </ul>
+            </div>
+        </div>
+        <h3 style="text-align:center;color:var(--navy);margin:2rem 0 1rem;font-size:1.3rem;">Environmental Parameters</h3>
+        <div class="env-table-wrap">
+            <table class="env-table">
+                <thead><tr><th>Parameter</th><th>Specification</th></tr></thead>
+                <tbody>
+                    <tr><td>Operating Temperature</td><td>-20&#176;C to 40&#176;C</td></tr>
+                    <tr><td>Storage Temperature</td><td>-20&#176;C to 50&#176;C</td></tr>
+                    <tr><td>Relative Humidity</td><td>0-95% (non-condensing)</td></tr>
+                    <tr><td>Noise (1-3KS)</td><td><50dB @ 1 meter</td></tr>
+                    <tr><td>Noise (6KS)</td><td><56dB @ 1 meter</td></tr>
+                    <tr><td>Noise (10KS)</td><td><58dB @ 1 meter</td></tr>
+                    <tr><td>Altitude</td><td>Up to 1000m without derating</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </section>
+
+
+
+<section class="pain-points" id="pain-points">
+    <div class="container">
+        <h2 class="section-title">UPS Battery Pain Points &#8594; Sodium-ion Solution</h2>
+        <p class="section-subtitle">How sodium-ion directly addresses the 5 biggest UPS battery challenges</p>
+        <div class="pain-grid">
+            <div class="pain-item"><span class="problem">&#128293; Thermal Runaway Risk</span><span class="arrow">&#8594;</span><span class="solution">&#10004; Zero Fire Risk</span></div>
+            <div class="pain-item"><span class="problem">&#10052;&#65039; Cold Temperature Failure</span><span class="arrow">&#8594;</span><span class="solution">&#10004; -20&#176;C Full Performance</span></div>
+            <div class="pain-item"><span class="problem">&#128176; High Replacement Cost</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 3x Longer Life</span></div>
+            <div class="pain-item"><span class="problem">&#9889; Slow Recharge</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 1C Fast Charge</span></div>
+            <div class="pain-item" style="grid-column:1/-1;justify-content:center;"><span class="problem">&#9851;&#65039; Environmental Hazard</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 100% Recyclable</span></div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+<!-- SPECS -->
+
 
 <section class="comparison" id="comparison">
     <div class="container">
@@ -742,318 +877,6 @@ const INDEX_HTML = `<!DOCTYPE html>
 
 
 
-<section id="applications">
-    <div class="container">
-        <h2 class="section-title">UPS Application Scenarios</h2>
-        <p class="section-subtitle">Where sodium-ion delivers the most value for UPS backup power</p>
-        <div class="apps-grid">
-            <div class="app-card" style="border-top-color:var(--blue);">
-                <div class="icon">&#127970;</div><h3 style="color:var(--blue);">Data Center UPS</h3>
-                <ul><li>24/7 critical load protection</li><li>Zero fire risk for server rooms</li><li>Space-efficient, no HVAC needed</li><li>Fast recharge between outages</li></ul>
-            </div>
-            <div class="app-card" style="border-top-color:var(--teal);">
-                <div class="icon">&#128241;</div><h3 style="color:var(--teal);">Telecom Base Station UPS</h3>
-                <ul><li>Remote sites with extreme temps</li><li>-20&#176;C to 60&#176;C operation</li><li>Low maintenance for rural areas</li><li>10+ year service life</li></ul>
-            </div>
-            <div class="app-card" style="border-top-color:var(--orange);">
-                <div class="icon">&#127997;</div><h3 style="color:var(--orange);">Industrial UPS</h3>
-                <ul><li>Factory automation backup</li><li>High-temperature workshops</li><li>Heavy load support (2C discharge)</li><li>Reliable for critical processes</li></ul>
-            </div>
-            <div class="app-card" style="border-top-color:var(--red);">
-                <div class="icon">&#128657;</div><h3 style="color:var(--red);">Medical Facility UPS</h3>
-                <ul><li>Life-critical equipment backup</li><li>Zero fire risk compliance</li><li>Silent, vibration-free operation</li><li>Instant power switching</li></ul>
-            </div>
-            <div class="app-card" style="border-top-color:var(--green);">
-                <div class="icon">&#127968;</div><h3 style="color:var(--green);">Home & Office UPS</h3>
-                <ul><li>Home office backup power</li><li>Solar + storage integration</li><li>Compact, wall-mountable design</li><li>Cost-effective solution</li></ul>
-            </div>
-            <div class="app-card" style="border-top-color:var(--purple);">
-                <div class="icon">&#127796;</div><h3 style="color:var(--purple);">Off-Grid & Remote UPS</h3>
-                <ul><li>Remote monitoring stations</li><li>Rural electrification backup</li><li>Microgrid energy storage</li><li>No regular maintenance needed</li></ul>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section id="specs">
-    <div class="container">
-        <h2 class="section-title">Technical Specifications</h2>
-        <p class="section-subtitle">Talegent 6.4Ah Sodium-ion Module &#8212; Designed for seamless UPS integration</p>
-        <div class="specs-grid">
-            <div>
-                <table class="specs-table">
-                    <tr><td>Battery Chemistry</td><td>Sodium-ion (Na-ion)</td></tr>
-                    <tr><td>Configuration</td><td>4S (4 cells in series)</td></tr>
-                    <tr><td>Nominal Voltage</td><td>12.8V</td></tr>
-                    <tr><td>Nominal Capacity</td><td>6.4Ah</td></tr>
-                    <tr><td>Nominal Energy</td><td>81.92Wh</td></tr>
-                    <tr><td>Operating Voltage</td><td>10.0V ~ 14.6V</td></tr>
-                    <tr><td>Standard Charge</td><td>0.2C (1.28A)</td></tr>
-                    <tr><td>Max Charge (Fast)</td><td>1C (6.4A) &#8212; 30min to 80%</td></tr>
-                    <tr><td>Max Discharge (UPS)</td><td>2C (12.8A) &#8212; peak load support</td></tr>
-                    <tr><td>Operating Temp</td><td>-20&#176;C ~ 60&#176;C</td></tr>
-                    <tr><td>Cycle Life</td><td>&#8805; 3,000 cycles @ 80% DoD</td></tr>
-                    <tr><td>Communication</td><td>RS485 / CAN / I&#178;C</td></tr>
-                    <tr><td>Dimensions</td><td>150 &#215; 65 &#215; 95 mm</td></tr>
-                    <tr><td>Weight</td><td>~1.2 kg</td></tr>
-                    <tr><td>Certification</td><td>UN38.3, CE, RoHS</td></tr>
-                </table>
-            </div>
-            <div class="integration-list">
-                <h3>&#128268; UPS Integration Features</h3>
-                <ul>
-                    <li>Drop-in replacement for lead-acid (same 12.8V)</li>
-                    <li>Compatible with standard UPS charging profiles</li>
-                    <li>BMS communicates via RS485/CAN with UPS controller</li>
-                    <li>Real-time battery status: voltage, current, temp, SOC</li>
-                    <li>Automatic load shedding at low SOC</li>
-                    <li>Parallel connection for higher capacity (up to 4 units)</li>
-                    <li>Hot-swappable module design for easy maintenance</li>
-                    <li>LED indicators: Power, Charging, Fault, SOC level</li>
-                    <li>Remote monitoring via Modbus protocol</li>
-                    <li>Firmware upgradeable via CAN bus</li>
-                </ul>
-                <p style="margin-top:1rem;padding:0.8rem;background:var(--navy);color:white;border-radius:8px;text-align:center;font-weight:600;">&#128161; Same voltage as lead-acid &#8212; no UPS modification needed!</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-
-
-
-<section class="partner" id="partner">
-    <div class="container">
-        <h2 class="section-title">We Are Looking for Partners!</h2>
-        <p class="section-subtitle">Join Talegent in revolutionizing the UPS industry with sodium-ion technology</p>
-        <div class="partner-grid">
-            <div class="partner-card">
-                <div class="icon">&#127758;</div>
-                <h4>Distributors & Resellers</h4>
-                <p>Join our global partner network and bring the world's first sodium-ion UPS to your market.</p>
-            </div>
-            <div class="partner-card">
-                <div class="icon">&#128295;</div>
-                <h4>System Integrators</h4>
-                <p>Integrate Vitality Series into your solutions for data centers, telecom, and industrial applications.</p>
-            </div>
-            <div class="partner-card">
-                <div class="icon">&#127873;</div>
-                <h4>OEM Partners</h4>
-                <p>Customize sodium-ion UPS for your brand with our flexible OEM/ODM program.</p>
-            </div>
-            <div class="partner-card">
-                <div class="icon">&#129514;</div>
-                <h4>Technology Partners</h4>
-                <p>Co-develop next-gen energy storage solutions with our R&D team.</p>
-            </div>
-        </div>
-        <h3 style="color:white;font-size:1.3rem;margin-bottom:1.5rem;">&#128161; Why Partner with Talegent?</h3>
-        <div class="partner-benefits">
-            <div class="partner-benefit">
-                <div class="icon">&#127919;</div>
-                <p><strong style="color:white;">First-mover advantage</strong><br>in sodium-ion UPS market</p>
-            </div>
-            <div class="partner-benefit">
-                <div class="icon">&#128218;</div>
-                <p><strong style="color:white;">Comprehensive support</strong><br>Technical support & training</p>
-            </div>
-            <div class="partner-benefit">
-                <div class="icon">&#128176;</div>
-                <p><strong style="color:white;">Competitive pricing</strong><br>& territory protection</p>
-            </div>
-            <div class="partner-benefit">
-                <div class="icon">&#128240;</div>
-                <p><strong style="color:white;">Marketing materials</strong><br>Sales enablement resources</p>
-            </div>
-            <div class="partner-benefit">
-                <div class="icon">&#128640;</div>
-                <p><strong style="color:white;">Joint development</strong><br>Product innovation opportunities</p>
-            </div>
-        </div>
-    </div>
-</section><section class="cta-section" id="contact">
-    <h2>Ready to Partner with Talegent?</h2>
-    <p>Contact us today to explore partnership opportunities</p>
-    <div class="cta-buttons">
-        <a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20UPS%20products." target="_blank" class="btn btn-whatsapp" style="font-size:1.1rem;padding:16px 36px;">&#128172; Chat on WhatsApp</a>
-        <a href="mailto:dean@talegent-ess.com" class="btn btn-primary" style="font-size:1.1rem;padding:16px 36px;">&#9993; Email: dean@talegent-ess.com</a>
-    </div>
-</section>
-
-<footer>
-    <p>&#169; 2026 Talegent Innovation Technology Co., Ltd. All rights reserved. | Vitality Series Sodium-ion UPS | <a href="mailto:dean@talegent-ess.com">dean@talegent-ess.com</a> | <a href="https://www.talegent-ess.com" target="_blank">www.talegent-ess.com</a></p>
-</footer>
-
-<!-- WhatsApp Floating Button -->
-<a href="https://wa.me/8618163813252?text=Hello%2C%20I%20am%20interested%20in%20your%20UPS%20products." target="_blank" class="whatsapp-float">
-    &#128172;
-    <span class="tooltip">Chat with us!</span>
-</a>
-
-<script>
-function toggleMenu() {
-    document.getElementById('navLinks').classList.toggle('active');
-}
-document.querySelectorAll('.nav-links a').forEach(link => {
-    link.addEventListener('click', () => {
-        document.getElementById('navLinks').classList.remove('active');
-    });
-});
-function switchTab(tab) {
-    document.querySelectorAll('.product-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.product-table-wrap').forEach(t => t.style.display = 'none');
-    document.querySelector('.product-tab[onclick*="' + tab + '"]').classList.add('active');
-    document.getElementById('tab-' + tab).style.display = 'block';}
-</script>
-
-<script src="tracker-client.js"></script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- PRODUCTS -->
-<section class="product-line" id="products">
-    <div class="container">
-        <h2 class="section-title">Vitality Series Sodium-ion UPS</h2>
-        <p class="section-subtitle">The world's first sodium-ion battery powered on-line UPS</p>
-        <p class="product-intro">The Vitality series is the world's first sodium-ion battery powered on-line UPS. Featuring true double conversion technology, output power factor 1.0, and efficiency up to 96%+, it perfectly replaces traditional lead-acid and lithium battery UPS systems.</p>
-        <div class="product-tabs">
-            <span class="product-tab active" onclick="switchTab('tower')">Tower Series</span>
-            <span class="product-tab" onclick="switchTab('rack')">Rack/Tower Series</span>
-            <span class="product-tab" onclick="switchTab('ebm')">External Battery Modules</span>
-        </div>
-        <div class="product-table-wrap" id="tab-tower">
-            <table class="product-table">
-                <thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead>
-                <tbody>
-                    <tr><td>1KS</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>275x165x220</td><td>7.8kg</td></tr>
-                    <tr><td>2KS</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>390x190x320</td><td>14.3kg</td></tr>
-                    <tr><td>3KS</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>390x190x320</td><td>16.3kg</td></tr>
-                    <tr><td>6KS</td><td>6kVA/6kW</td><td>208-240V</td><td>1228.8Wh</td><td>450x190x700</td><td>31.4kg</td></tr>
-                    <tr><td>10KS</td><td>10kVA/10kW</td><td>208-240V</td><td>1536.0Wh</td><td>450x190x700</td><td>35.8kg</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="product-table-wrap" id="tab-rack" style="display:none;">
-            <table class="product-table">
-                <thead><tr><th>Model</th><th>Capacity</th><th>Voltage</th><th>Battery Energy</th><th>Dimension (mm)</th><th>Weight</th></tr></thead>
-                <tbody>
-                    <tr><td>1KS-RT</td><td>1kVA/1kW</td><td>208-240V</td><td>230.4Wh</td><td>440x355x85</td><td>11.4kg</td></tr>
-                    <tr><td>2KS-RT</td><td>2kVA/2kW</td><td>208-240V</td><td>460.8Wh</td><td>440x485x85</td><td>16.35kg</td></tr>
-                    <tr><td>3KS-RT</td><td>3kVA/3kW</td><td>208-240V</td><td>614.4Wh</td><td>440x560x85</td><td>19.85kg</td></tr>
-                    <tr><td>6K-RT</td><td>6kVA/6kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.15kg</td></tr>
-                    <tr><td>10K-RT</td><td>10kVA/10kW</td><td>208-240V</td><td>Ext. Battery</td><td>485x85x440</td><td>9.35kg</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="product-table-wrap" id="tab-ebm" style="display:none;">
-            <table class="product-table">
-                <thead><tr><th>Model</th><th>Voltage</th><th>Energy</th><th>Dimension (mm)</th><th>Weight</th><th>Cells</th></tr></thead>
-                <tbody>
-                    <tr><td>EBP1K-RT</td><td>36V</td><td>460.8Wh</td><td>440x485x85</td><td>11.85kg</td><td>NA-481840W x4</td></tr>
-                    <tr><td>EBP2K-RT</td><td>72V</td><td>921.6Wh</td><td>440x565x85</td><td>16.85kg</td><td>NA-481840W x6</td></tr>
-                    <tr><td>EBP3K-RT</td><td>96V</td><td>1228.8Wh</td><td>440x715x85</td><td>21.10kg</td><td>NA-481840W x8</td></tr>
-                    <tr><td>BX192064Na-RT</td><td>192V</td><td>1228.8Wh</td><td>440x680x85</td><td>22.5kg</td><td>NA-481840W x4</td></tr>
-                    <tr><td>BX240064Na-RT</td><td>240V</td><td>1536.0Wh</td><td>440x680x85</td><td>25.5kg</td><td>NA-481840W x5</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section><!-- CERTIFICATIONS -->
-<section class="certifications" id="certifications">
-    <div class="container">
-        <h2 class="section-title">Quality Assurance</h2>
-        <p class="section-subtitle">The Vitality series has passed multiple international authoritative certifications for global market access</p>
-        <div class="cert-grid">
-            <div class="cert-card">
-                <h4>&#128737;&#65039; Safety Certifications</h4>
-                <ul>
-                    <li>EN/IEC 62040-1 (UPS Safety)</li>
-                    <li>IEC 62619 (Battery Safety)</li>
-                    <li>UN 38.3 (Transport)</li>
-                    <li>MSDS</li>
-                </ul>
-            </div>
-            <div class="cert-card">
-                <h4>&#9889; Performance Standards</h4>
-                <ul>
-                    <li>EN/IEC 62040-3 (UPS Performance)</li>
-                    <li>EN/IEC 61000 (EMC)</li>
-                    <li>EN62040-2 C2 (CE)</li>
-                </ul>
-            </div>
-            <div class="cert-card">
-                <h4>&#127793; Environmental Compliance</h4>
-                <ul>
-                    <li>RoHS (Hazardous Substances)</li>
-                    <li>REACH (Chemical Registration)</li>
-                    <li>WEEE (Waste Electronics)</li>
-                </ul>
-            </div>
-            <div class="cert-card">
-                <h4>&#128202; Quality Systems</h4>
-                <ul>
-                    <li>ISO 9001 (Quality Management)</li>
-                    <li>ISO 14001 (Environmental Management)</li>
-                    <li>ISO 45001 (Occupational Health)</li>
-                </ul>
-            </div>
-        </div>
-        <h3 style="text-align:center;color:var(--navy);margin:2rem 0 1rem;font-size:1.3rem;">Environmental Parameters</h3>
-        <div class="env-table-wrap">
-            <table class="env-table">
-                <thead><tr><th>Parameter</th><th>Specification</th></tr></thead>
-                <tbody>
-                    <tr><td>Operating Temperature</td><td>-20&#176;C to 40&#176;C</td></tr>
-                    <tr><td>Storage Temperature</td><td>-20&#176;C to 50&#176;C</td></tr>
-                    <tr><td>Relative Humidity</td><td>0-95% (non-condensing)</td></tr>
-                    <tr><td>Noise (1-3KS)</td><td><50dB @ 1 meter</td></tr>
-                    <tr><td>Noise (6KS)</td><td><56dB @ 1 meter</td></tr>
-                    <tr><td>Noise (10KS)</td><td><58dB @ 1 meter</td></tr>
-                    <tr><td>Altitude</td><td>Up to 1000m without derating</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
-
-<section class="pain-points" id="pain-points">
-    <div class="container">
-        <h2 class="section-title">UPS Battery Pain Points &#8594; Sodium-ion Solution</h2>
-        <p class="section-subtitle">How sodium-ion directly addresses the 5 biggest UPS battery challenges</p>
-        <div class="pain-grid">
-            <div class="pain-item"><span class="problem">&#128293; Thermal Runaway Risk</span><span class="arrow">&#8594;</span><span class="solution">&#10004; Zero Fire Risk</span></div>
-            <div class="pain-item"><span class="problem">&#10052;&#65039; Cold Temperature Failure</span><span class="arrow">&#8594;</span><span class="solution">&#10004; -20&#176;C Full Performance</span></div>
-            <div class="pain-item"><span class="problem">&#128176; High Replacement Cost</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 3x Longer Life</span></div>
-            <div class="pain-item"><span class="problem">&#9889; Slow Recharge</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 1C Fast Charge</span></div>
-            <div class="pain-item" style="grid-column:1/-1;justify-content:center;"><span class="problem">&#9851;&#65039; Environmental Hazard</span><span class="arrow">&#8594;</span><span class="solution">&#10004; 100% Recyclable</span></div>
-        </div>
-    </div>
-</section>
-
-
-
-
-
-
-
-<!-- SPECS -->
 <section class="tech-specs" id="specs">
     <div class="container">
         <h2 class="section-title">Technical Specifications</h2>
@@ -1113,6 +936,8 @@ function switchTab(tab) {
 </section>
 
 <!-- PARTNER -->
+
+
 <section class="partner" id="partner">
     <div class="container">
         <h2 class="section-title">We Are Looking for Partners!</h2>
@@ -1163,7 +988,9 @@ function switchTab(tab) {
             </div>
         </div>
     </div>
-</section><section class="cta-section" id="contact">
+</section>
+
+<section class="cta-section" id="contact">
     <h2>Ready to Partner with Talegent?</h2>
     <p>Contact us today to explore partnership opportunities</p>
     <div class="cta-buttons">
@@ -1492,7 +1319,7 @@ function renderEventsTable(events){
   if(tf)f=f.filter(function(e){return(e.event_type||e.eventType)===tf});
   if(df)f=f.filter(function(e){return(e.timestamp||'').split('T')[0]>=df});
   if(dt)f=f.filter(function(e){return(e.timestamp||'').split('T')[0]<=dt});
-  f.sort(function(a,b){return Number(new Date(b.timestamp))-Number(new Date(a.timestamp))});
+  f.sort(function(a,b){return new Date(b.timestamp)-new Date(a.timestamp)});
   f=f.slice(0,100);
   if(f.length===0){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:#999;padding:2rem;">暂无数据</td></tr>';return}
   var h='';
@@ -1664,7 +1491,7 @@ export default {
         const totalPV = parseInt(await env.VISITOR_DATA.get("stats_pv") || "0");
         const dateStr = new Date().toISOString().split("T")[0];
         const todayPV = parseInt(await env.VISITOR_DATA.get("stats_daily_pv:" + dateStr) || "0");
-        const todayUV = (JSON.parse(await env.VISITOR_DATA.get("stats_uv:" + dateStr) || "[]")||[]).length;
+        const todayUV = JSON.parse(await env.VISITOR_DATA.get("stats_uv:" + dateStr) || "[]").length;
 
         return new Response(JSON.stringify({ total_page_views: totalPV, today_page_views: todayPV, today_unique_visitors: todayUV }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
@@ -1705,7 +1532,7 @@ export default {
         }
 
         // Sort by timestamp descending (newest first)
-        events.sort((a, b) => Number(new Date(b.timestamp)) - Number(new Date(a.timestamp)));
+        events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
         // Apply limit
         events = events.slice(0, limit);
