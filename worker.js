@@ -1366,7 +1366,7 @@ export default {
         const totalPV = parseInt(await env.VISITOR_DATA.get("stats_pv") || "0");
         const dateStr = new Date().toISOString().split("T")[0];
         const todayPV = parseInt(await env.VISITOR_DATA.get("stats_daily_pv:" + dateStr) || "0");
-        const todayUV = JSON.parse(await env.VISITOR_DATA.get("stats_uv:" + dateStr) || "[]").length;
+        const todayUV = (JSON.parse(await env.VISITOR_DATA.get("stats_uv:" + dateStr) || "[]")||[]).length;
 
         return new Response(JSON.stringify({ total_page_views: totalPV, today_page_views: todayPV, today_unique_visitors: todayUV }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
