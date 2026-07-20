@@ -352,7 +352,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 }
 
 .cert-card li:before {
-    content: "\u2713";
+    content: "✓";
     color: #4caf50;
     margin-right: 8px;
 }
