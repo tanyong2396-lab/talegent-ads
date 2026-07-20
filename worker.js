@@ -65,7 +65,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         .advantage-card h3 { font-size:1.1rem; margin-bottom:0.5rem; }
         .advantage-card ul { list-style:none; margin-top:0.5rem; }
         .advantage-card ul li { color:var(--gray); font-size:0.85rem; padding:0.2rem 0; padding-left:1.2rem; position:relative; }
-        .advantage-card ul li::before { content:'\2022'; position:absolute; left:0; color:var(--blue); font-weight:bold; }
+        .advantage-card ul li::before { content:'•'; position:absolute; left:0; color:var(--blue); font-weight:bold; }
 
         .comparison { background:var(--light-bg); }
         .table-wrapper { overflow-x:auto; }
@@ -108,7 +108,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         .app-card h3 { font-size:1.1rem; margin-bottom:0.5rem; }
         .app-card ul { list-style:none; }
         .app-card ul li { color:var(--gray); font-size:0.85rem; padding:0.2rem 0; padding-left:1.2rem; position:relative; }
-        .app-card ul li::before { content:'\2022'; position:absolute; left:0; color:var(--teal); font-weight:bold; }
+        .app-card ul li::before { content:'•'; position:absolute; left:0; color:var(--teal); font-weight:bold; }
 
         .specs-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
         .specs-table { width:100%; border-collapse:collapse; }
@@ -120,7 +120,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         .integration-list h3 { margin-bottom:1rem; color:var(--navy); }
         .integration-list ul { list-style:none; }
         .integration-list ul li { padding:0.4rem 0; padding-left:1.8rem; position:relative; color:var(--gray); font-size:0.9rem; }
-        .integration-list ul li::before { content:'\2705'; position:absolute; left:0; }
+        .integration-list ul li::before { content:'✅'; position:absolute; left:0; }
 
         .cta-section { background:linear-gradient(135deg,var(--navy),#0D2B5A); text-align:center; padding:4rem 2rem; }
         .cta-section h2 { color:white; font-size:2.2rem; margin-bottom:0.5rem; }
@@ -352,7 +352,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 }
 
 .cert-card li:before {
-    content: "\2713";
+    content: "✓";
     color: #4caf50;
     margin-right: 8px;
 }
